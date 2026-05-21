@@ -429,6 +429,8 @@ body::after{
   display:flex;align-items:center;justify-content:center;
 }
 .admin-toggle:hover{background:var(--blue-mid);transform:scale(1.1)}
+body.qr-visitor .admin-toggle{display:none !important}
+body.qr-visitor .export-bar{display:none !important}
 .admin-panel{
   display:none;
   position:fixed;inset:0;z-index:200;
@@ -606,6 +608,12 @@ body::after{
 </style>
 </head>
 <body>
+<script>
+if(new URLSearchParams(window.location.search).get('qr')==='1'){
+  document.documentElement.classList.add('qr-visitor');
+  document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('qr-visitor');});
+}
+</script>
 
 <!-- ============================================================
      HEADER
@@ -1656,18 +1664,10 @@ function showToast(msg) {
 renderResponses();
 updateProgress();
 
-/* ============================================================
-   MASQUER LES CONTRÔLES ADMIN POUR LES VISITEURS QR
-   ============================================================ */
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('qr') === '1') {
-    const adminToggle = document.querySelector('.admin-toggle');
-    if (adminToggle) adminToggle.style.display = 'none';
-    const exportBar = document.querySelector('.export-bar');
-    if (exportBar) exportBar.style.display = 'none';
-  }
-})();
+/* Masquage admin QR — renforcé via classe CSS */
+if(new URLSearchParams(window.location.search).get('qr')==='1'){
+  document.body.classList.add('qr-visitor');
+}
 </script>
 </body>
 </html>
