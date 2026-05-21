@@ -1258,7 +1258,7 @@ document.getElementById('surveyForm').addEventListener('submit', async function(
 let qrGenerated = false;
 function initQR() {
   if (qrGenerated) return;
-  const url = window.location.href.split('?')[0];
+  const url = window.location.href.split('?')[0] + '?qr=1';
   document.getElementById('shareUrlText').textContent = url;
   new QRCode(document.getElementById('qrcode'), {
     text: url,
@@ -1655,6 +1655,19 @@ function showToast(msg) {
    ============================================================ */
 renderResponses();
 updateProgress();
+
+/* ============================================================
+   MASQUER LES CONTRÔLES ADMIN POUR LES VISITEURS QR
+   ============================================================ */
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('qr') === '1') {
+    const adminToggle = document.querySelector('.admin-toggle');
+    if (adminToggle) adminToggle.style.display = 'none';
+    const exportBar = document.querySelector('.export-bar');
+    if (exportBar) exportBar.style.display = 'none';
+  }
+})();
 </script>
 </body>
 </html>
