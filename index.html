@@ -1643,9 +1643,14 @@ function switchTab(tab) {
    OUVERTURE DU PANNEAU ADMIN
    ============================================================ */
 function openAdmin() {
-  document.getElementById('adminPanel').style.display = 'flex';
-  renderAnalytics();
-  renderResponses();
+  const pwd = prompt('Mot de passe administrateur :');
+  if (pwd === 'enquete NOZ') {
+    document.getElementById('adminPanel').style.display = 'flex';
+    renderAnalytics();
+    renderResponses();
+  } else if (pwd !== null) {
+    showToast('Mot de passe incorrect.');
+  }
 }
 
 /* ============================================================
