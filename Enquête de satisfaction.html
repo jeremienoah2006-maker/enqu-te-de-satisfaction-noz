@@ -1,0 +1,1665 @@
+bash
+
+cat > /home/claude/enquete.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enquête de Satisfaction</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Chart.js pour le dashboard analytique -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   VARIABLES & RESET
+   ============================================================ */
+:root{
+  --blue:#0f2b5b;
+  --blue-mid:#1a3d7c;
+  --blue-light:#2563eb;
+  --accent:#3b82f6;
+  --white:#ffffff;
+  --gray-50:#f8faff;
+  --gray-100:#f1f5ff;
+  --gray-200:#e2e8f0;
+  --gray-400:#94a3b8;
+  --gray-600:#475569;
+  --gray-800:#1e293b;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --radius:16px;
+  --shadow:0 4px 24px rgba(15,43,91,0.10);
+  --shadow-lg:0 12px 48px rgba(15,43,91,0.16);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--gray-50);
+  color:var(--gray-800);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* BG decoration */
+body::before{
+  content:'';
+  position:fixed;top:0;left:0;right:0;height:320px;
+  background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 60%,#1e4fad 100%);
+  z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed;top:200px;left:-100px;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(59,130,246,0.15) 0%,transparent 70%);
+  z-index:0;pointer-events:none;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header{
+  position:relative;z-index:10;
+  text-align:center;
+  padding:48px 24px 32px;
+  color:var(--white);
+}
+.header-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  backdrop-filter:blur(8px);
+  border-radius:100px;
+  padding:6px 16px;
+  font-size:13px;font-weight:500;letter-spacing:0.5px;
+  margin-bottom:20px;
+  animation:fadeDown 0.6s ease both;
+}
+.header h1{
+  font-family:'Sora',sans-serif;
+  font-size:clamp(26px,5vw,42px);
+  font-weight:700;
+  line-height:1.2;
+  margin-bottom:12px;
+  animation:fadeDown 0.6s 0.1s ease both;
+}
+.header p{
+  font-size:15px;
+  opacity:0.85;
+  max-width:520px;margin:0 auto;
+  line-height:1.7;
+  animation:fadeDown 0.6s 0.2s ease both;
+}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.progress-wrap{
+  position:relative;z-index:10;
+  max-width:680px;margin:0 auto;
+  padding:0 24px;
+  animation:fadeDown 0.6s 0.25s ease both;
+}
+.progress-bar-bg{
+  height:6px;
+  background:rgba(255,255,255,0.25);
+  border-radius:100px;
+  overflow:hidden;
+  margin-bottom:8px;
+}
+.progress-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,rgba(255,255,255,0.7),var(--white));
+  border-radius:100px;
+  transition:width 0.5s cubic-bezier(.4,0,.2,1);
+  width:0%;
+}
+.progress-label{
+  display:flex;justify-content:space-between;
+  font-size:12px;color:rgba(255,255,255,0.75);font-weight:500;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  position:relative;z-index:10;
+  background:var(--white);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid rgba(226,232,240,0.8);
+  padding:36px;
+  margin-bottom:20px;
+  animation:fadeUp 0.5s ease both;
+  transition:box-shadow 0.3s;
+}
+.card:hover{box-shadow:var(--shadow-lg)}
+
+.main{
+  max-width:680px;margin:0 auto;
+  padding:28px 24px 60px;
+  position:relative;z-index:10;
+}
+
+/* ============================================================
+   SECTION LABELS
+   ============================================================ */
+.section-label{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:24px;
+}
+.section-label .dot{
+  width:10px;height:10px;
+  background:var(--blue-light);border-radius:50%;
+  flex-shrink:0;
+}
+.section-label span{
+  font-family:'Sora',sans-serif;
+  font-size:11px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--blue-light);
+}
+
+/* ============================================================
+   QUESTIONS
+   ============================================================ */
+.question-block{margin-bottom:32px}
+.question-block:last-child{margin-bottom:0}
+.q-num{
+  font-size:11px;font-weight:600;letter-spacing:1px;
+  color:var(--accent);text-transform:uppercase;
+  margin-bottom:6px;
+}
+.q-text{
+  font-family:'Sora',sans-serif;
+  font-size:16px;font-weight:600;
+  color:var(--gray-800);
+  line-height:1.5;margin-bottom:16px;
+}
+.q-text .req{color:#ef4444;margin-left:2px}
+
+/* ============================================================
+   RADIO GROUP
+   ============================================================ */
+.radio-group{display:flex;flex-direction:column;gap:10px}
+.radio-opt{
+  display:flex;align-items:center;gap:14px;
+  background:var(--gray-100);
+  border:2px solid transparent;
+  border-radius:12px;
+  padding:13px 18px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  position:relative;overflow:hidden;
+}
+.radio-opt::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(37,99,235,0));
+  opacity:0;transition:opacity 0.2s;
+}
+.radio-opt:hover{
+  border-color:var(--accent);
+  background:var(--white);
+  transform:translateX(4px);
+}
+.radio-opt:hover::before{opacity:1}
+.radio-opt.selected{
+  border-color:var(--blue-light);
+  background:var(--white);
+  box-shadow:0 0 0 4px rgba(37,99,235,0.08);
+}
+.radio-opt input[type=radio]{display:none}
+.radio-indicator{
+  width:20px;height:20px;min-width:20px;
+  border:2px solid var(--gray-200);
+  border-radius:50%;
+  transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.radio-opt.selected .radio-indicator{
+  border-color:var(--blue-light);
+  background:var(--blue-light);
+}
+.radio-opt.selected .radio-indicator::after{
+  content:'';
+  width:8px;height:8px;
+  background:var(--white);
+  border-radius:50%;
+}
+.radio-label{
+  font-size:14px;font-weight:500;color:var(--gray-600);
+  transition:color 0.2s;
+}
+.radio-opt.selected .radio-label{color:var(--gray-800)}
+
+/* ============================================================
+   EMOJI SCALE (Q1)
+   ============================================================ */
+.emoji-scale{display:flex;gap:8px;flex-wrap:wrap}
+.emoji-opt{
+  flex:1;min-width:80px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 8px;
+  background:var(--gray-100);
+  border:2px solid transparent;
+  border-radius:14px;
+  cursor:pointer;
+  transition:all 0.25s ease;
+  text-align:center;
+}
+.emoji-opt:hover{border-color:var(--accent);background:var(--white);transform:translateY(-3px);box-shadow:var(--shadow)}
+.emoji-opt.selected{border-color:var(--blue-light);background:var(--white);transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.emoji-opt input{display:none}
+.emoji-icon{font-size:26px;line-height:1}
+.emoji-label{font-size:11px;font-weight:600;color:var(--gray-600)}
+.emoji-opt.selected .emoji-label{color:var(--blue-light)}
+
+/* ============================================================
+   INPUT FIELDS
+   ============================================================ */
+.input-wrap{position:relative}
+.input-wrap input,.input-wrap select,.input-wrap textarea{
+  width:100%;
+  padding:14px 18px;
+  background:var(--gray-100);
+  border:2px solid transparent;
+  border-radius:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  color:var(--gray-800);
+  outline:none;
+  transition:all 0.2s;
+  appearance:none;
+}
+.input-wrap input:focus,.input-wrap select:focus{
+  border-color:var(--blue-light);
+  background:var(--white);
+  box-shadow:0 0 0 4px rgba(37,99,235,0.08);
+}
+.input-wrap input.error{border-color:#ef4444}
+.input-hint{font-size:12px;color:var(--gray-400);margin-top:6px}
+.input-error{font-size:12px;color:#ef4444;margin-top:6px;display:none}
+.input-error.show{display:block}
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider{height:1px;background:var(--gray-200);margin:0 -36px 32px;position:relative}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary{
+  width:100%;
+  padding:16px 32px;
+  background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);
+  color:var(--white);
+  border:none;border-radius:14px;
+  font-family:'Sora',sans-serif;
+  font-size:15px;font-weight:600;
+  cursor:pointer;
+  transition:all 0.25s ease;
+  position:relative;overflow:hidden;
+  letter-spacing:0.3px;
+}
+.btn-primary::after{
+  content:'';
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0);
+  transition:background 0.2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(15,43,91,0.3)}
+.btn-primary:hover::after{background:rgba(255,255,255,0.06)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+
+.btn-secondary{
+  padding:10px 20px;
+  background:var(--gray-100);
+  color:var(--gray-600);
+  border:2px solid var(--gray-200);
+  border-radius:10px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--blue-light);background:var(--white)}
+
+/* ============================================================
+   THANK YOU SCREEN
+   ============================================================ */
+#screen-thankyou{display:none}
+.ty-icon{
+  width:80px;height:80px;
+  background:linear-gradient(135deg,var(--success),#059669);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;
+  font-size:36px;
+  box-shadow:0 8px 32px rgba(16,185,129,0.3);
+  animation:popIn 0.5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+.ty-title{
+  font-family:'Sora',sans-serif;
+  font-size:28px;font-weight:700;
+  color:var(--gray-800);
+  margin-bottom:12px;
+  text-align:center;
+}
+.ty-sub{
+  font-size:15px;color:var(--gray-600);
+  text-align:center;line-height:1.7;
+  max-width:440px;margin:0 auto 32px;
+}
+.ty-id{
+  background:var(--gray-100);
+  border-radius:10px;padding:12px 20px;
+  font-size:13px;color:var(--gray-400);
+  text-align:center;margin-bottom:32px;
+  font-family:monospace;
+}
+.ty-id strong{color:var(--blue-light)}
+
+/* ============================================================
+   QR CODE SECTION
+   ============================================================ */
+.qr-section{text-align:center}
+.qr-title{
+  font-family:'Sora',sans-serif;
+  font-size:16px;font-weight:600;
+  margin-bottom:6px;color:var(--gray-800);
+}
+.qr-sub{font-size:13px;color:var(--gray-400);margin-bottom:20px}
+.qr-box{
+  display:inline-flex;
+  background:var(--white);
+  border:2px solid var(--gray-200);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+#qrcode canvas,#qrcode img{border-radius:8px}
+.qr-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ============================================================
+   SHARE URL
+   ============================================================ */
+.share-url{
+  display:flex;gap:8px;align-items:center;
+  background:var(--gray-100);
+  border:2px solid var(--gray-200);
+  border-radius:10px;padding:10px 14px;
+  margin-bottom:16px;
+}
+.share-url span{
+  flex:1;font-size:13px;color:var(--gray-600);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.copy-btn{
+  background:var(--blue-light);color:var(--white);
+  border:none;border-radius:7px;padding:6px 12px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:background 0.2s;white-space:nowrap;
+}
+.copy-btn:hover{background:var(--blue)}
+
+/* ============================================================
+   EXPORT BAR
+   ============================================================ */
+.export-bar{
+  display:flex;gap:10px;justify-content:center;
+  flex-wrap:wrap;margin-top:20px;
+}
+
+/* ============================================================
+   ADMIN / DASHBOARD PANEL
+   ============================================================ */
+.admin-toggle{
+  position:fixed;bottom:24px;right:24px;z-index:100;
+  background:var(--blue);color:var(--white);
+  border:none;border-radius:50%;width:52px;height:52px;
+  font-size:20px;cursor:pointer;
+  box-shadow:var(--shadow-lg);transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.admin-toggle:hover{background:var(--blue-mid);transform:scale(1.1)}
+.admin-panel{
+  display:none;
+  position:fixed;inset:0;z-index:200;
+  background:rgba(15,43,91,0.5);backdrop-filter:blur(4px);
+}
+.admin-inner{
+  position:absolute;right:0;top:0;bottom:0;
+  width:min(680px,100vw);
+  background:var(--white);
+  overflow-y:auto;
+  padding:32px;
+  box-shadow:-8px 0 48px rgba(15,43,91,0.15);
+  animation:slideIn 0.3s ease;
+}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.admin-header h3{font-family:'Sora',sans-serif;font-size:18px;font-weight:700}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-600)}
+
+/* Onglets dashboard */
+.admin-tabs{
+  display:flex;gap:4px;
+  background:var(--gray-100);
+  border-radius:10px;
+  padding:4px;
+  margin-bottom:24px;
+}
+.admin-tab{
+  flex:1;padding:8px 12px;
+  background:transparent;border:none;
+  border-radius:8px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;
+  color:var(--gray-400);
+  cursor:pointer;transition:all 0.2s;
+  text-align:center;
+}
+.admin-tab.active{background:var(--white);color:var(--blue-light);box-shadow:var(--shadow)}
+
+/* Cartes stats résumé */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+  margin-bottom:24px;
+}
+.stat-card{
+  background:var(--gray-50);
+  border:1px solid var(--gray-200);
+  border-radius:12px;padding:16px;
+  text-align:center;
+}
+.stat-num{
+  font-family:'Sora',sans-serif;
+  font-size:28px;font-weight:700;
+  color:var(--blue-light);
+  line-height:1;margin-bottom:4px;
+}
+.stat-label{font-size:11px;color:var(--gray-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+
+/* Graphiques */
+.chart-wrap{
+  background:var(--gray-50);
+  border:1px solid var(--gray-200);
+  border-radius:12px;padding:20px;
+  margin-bottom:16px;
+}
+.chart-title{
+  font-family:'Sora',sans-serif;
+  font-size:13px;font-weight:600;
+  color:var(--gray-600);
+  margin-bottom:16px;
+  text-transform:uppercase;letter-spacing:0.5px;
+}
+
+/* Cartes réponses individuelles */
+.response-card{
+  background:var(--gray-50);border:1px solid var(--gray-200);
+  border-radius:12px;padding:16px;margin-bottom:12px;
+  font-size:13px;
+}
+.response-card .rc-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;
+}
+.rc-id{font-weight:700;color:var(--blue-light);font-size:12px}
+.rc-date{font-size:11px;color:var(--gray-400)}
+.rc-email{font-weight:600;color:var(--gray-700);margin-bottom:6px}
+.rc-answers{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.rc-ans{font-size:11px;color:var(--gray-600)}
+
+/* Badge score NPS */
+.nps-badge{
+  display:inline-block;
+  padding:4px 10px;border-radius:100px;
+  font-size:11px;font-weight:700;
+  letter-spacing:0.5px;
+}
+.nps-promoter{background:rgba(16,185,129,0.12);color:#059669}
+.nps-neutral{background:rgba(245,158,11,0.12);color:#d97706}
+.nps-detractor{background:rgba(239,68,68,0.12);color:#dc2626}
+
+/* Barre satisfaction dans les cartes */
+.sat-bar{
+  height:4px;background:var(--gray-200);border-radius:100px;
+  overflow:hidden;margin-top:8px;
+}
+.sat-bar-fill{height:100%;border-radius:100px;transition:width 0.6s ease}
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+.toast{
+  position:fixed;bottom:90px;right:24px;z-index:300;
+  background:var(--gray-800);color:var(--white);
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  opacity:0;transform:translateY(10px);
+  transition:all 0.3s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+.spinner{
+  width:20px;height:20px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:var(--white);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  display:inline-block;vertical-align:middle;
+  margin-right:8px;display:none;
+}
+
+/* ============================================================
+   SAUVEGARDE CLOUD – Bannière de statut
+   ============================================================ */
+.sync-status{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(16,185,129,0.08);
+  border:1px solid rgba(16,185,129,0.2);
+  border-radius:8px;
+  padding:8px 14px;
+  font-size:12px;color:#059669;font-weight:600;
+  margin-bottom:16px;
+  animation:fadeUp 0.4s ease;
+}
+.sync-status.error{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#dc2626}
+.sync-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--success);
+  animation:pulse 2s infinite;
+}
+.sync-status.error .sync-dot{background:var(--danger);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:600px){
+  .card{padding:24px 20px}
+  .emoji-scale{flex-wrap:wrap}
+  .emoji-opt{min-width:calc(50% - 4px);flex:none}
+  .admin-inner{width:100%}
+  .rc-answers{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<div class="header">
+  <div class="header-badge">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="white" stroke-width="1.5"/><path d="M6 3.5V6.5L7.5 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Enquête 2026
+  </div>
+  <h1>Enquête de Satisfaction</h1>
+  <p>Votre avis compte. Aidez-nous à améliorer nos services et produits en répondant à ce questionnaire.</p>
+</div>
+
+<!-- ============================================================
+     BARRE DE PROGRESSION
+     ============================================================ -->
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressLabel">Question 0 / 14</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     FORMULAIRE PRINCIPAL
+     ============================================================ -->
+<div class="main" id="screen-form">
+<form id="surveyForm" novalidate>
+
+<!-- SECTION 1 : SATISFACTION GÉNÉRALE -->
+<div class="card" style="animation-delay:0.1s">
+  <div class="section-label"><div class="dot"></div><span>Satisfaction générale</span></div>
+
+  <!-- Q1 — Emoji scale satisfaction globale -->
+  <div class="question-block">
+    <div class="q-num">01</div>
+    <div class="q-text">Satisfaction globale du magasin<span class="req">*</span></div>
+    <div class="emoji-scale" role="group">
+      <label class="emoji-opt"><input type="radio" name="q1" value="5" required><div class="emoji-icon">😄</div><div class="emoji-label">Très satisfait</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="4"><div class="emoji-icon">🙂</div><div class="emoji-label">Satisfait</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="3"><div class="emoji-icon">😐</div><div class="emoji-label">Neutre</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="2"><div class="emoji-icon">😕</div><div class="emoji-label">Insatisfait</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="1"><div class="emoji-icon">😞</div><div class="emoji-label">Très insatisfait</div></label>
+    </div>
+    <div class="input-error" id="err-q1">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q2 — Produits / attentes -->
+  <div class="question-block">
+    <div class="q-num">02</div>
+    <div class="q-text">Les produits ont-ils répondu à vos attentes ?<span class="req">*</span></div>
+    <div class="radio-group" role="group">
+      <label class="radio-opt"><input type="radio" name="q2" value="Tout à fait" required><div class="radio-indicator"></div><span class="radio-label">Tout à fait</span></label>
+      <label class="radio-opt"><input type="radio" name="q2" value="Plutôt oui"><div class="radio-indicator"></div><span class="radio-label">Plutôt oui</span></label>
+      <label class="radio-opt"><input type="radio" name="q2" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q2" value="Plutôt non"><div class="radio-indicator"></div><span class="radio-label">Plutôt non</span></label>
+      <label class="radio-opt"><input type="radio" name="q2" value="Pas du tout"><div class="radio-indicator"></div><span class="radio-label">Pas du tout</span></label>
+    </div>
+    <div class="input-error" id="err-q2">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q3 — Qualité produits -->
+  <div class="question-block">
+    <div class="q-num">03</div>
+    <div class="q-text">Qualité des produits vendus<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q3" value="Très satisfaisante" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q3" value="Satisfaisante"><div class="radio-indicator"></div><span class="radio-label">Satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q3" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q3" value="Insatisfaisante"><div class="radio-indicator"></div><span class="radio-label">Insatisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q3" value="Très insatisfaisante"><div class="radio-indicator"></div><span class="radio-label">Très insatisfaisante</span></label>
+    </div>
+    <div class="input-error" id="err-q3">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q4 — Facilité d'accès -->
+  <div class="question-block">
+    <div class="q-num">04</div>
+    <div class="q-text">Facilité d'utilisation / d'accès<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q4" value="Très facile" required><div class="radio-indicator"></div><span class="radio-label">Très facile</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Facile"><div class="radio-indicator"></div><span class="radio-label">Facile</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Moyenne"><div class="radio-indicator"></div><span class="radio-label">Moyenne</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Difficile"><div class="radio-indicator"></div><span class="radio-label">Difficile</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Très difficile"><div class="radio-indicator"></div><span class="radio-label">Très difficile</span></label>
+    </div>
+    <div class="input-error" id="err-q4">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q5 — Rapidité service -->
+  <div class="question-block">
+    <div class="q-num">05</div>
+    <div class="q-text">Rapidité et efficacité du service<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q5" value="Très satisfaisante" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q5" value="Satisfaisante"><div class="radio-indicator"></div><span class="radio-label">Satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q5" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q5" value="Insatisfaisante"><div class="radio-indicator"></div><span class="radio-label">Insatisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q5" value="Très insatisfaisante"><div class="radio-indicator"></div><span class="radio-label">Très insatisfaisante</span></label>
+    </div>
+    <div class="input-error" id="err-q5">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q6 — Service client -->
+  <div class="question-block">
+    <div class="q-num">06</div>
+    <div class="q-text">Service client et accompagnement<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q6" value="Très satisfaisant" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisant</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Satisfaisant"><div class="radio-indicator"></div><span class="radio-label">Satisfaisant</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Insatisfaisant"><div class="radio-indicator"></div><span class="radio-label">Insatisfaisant</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Très insatisfaisant"><div class="radio-indicator"></div><span class="radio-label">Très insatisfaisant</span></label>
+    </div>
+    <div class="input-error" id="err-q6">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q7 — Trouver produits en rayon -->
+  <div class="question-block">
+    <div class="q-num">07</div>
+    <div class="q-text">Trouvez-vous ce que vous recherchez en magasin ?<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q7" value="Toujours" required><div class="radio-indicator"></div><span class="radio-label">Toujours</span></label>
+      <label class="radio-opt"><input type="radio" name="q7" value="Souvent"><div class="radio-indicator"></div><span class="radio-label">Souvent</span></label>
+      <label class="radio-opt"><input type="radio" name="q7" value="Parfois"><div class="radio-indicator"></div><span class="radio-label">Parfois</span></label>
+      <label class="radio-opt"><input type="radio" name="q7" value="Rarement"><div class="radio-indicator"></div><span class="radio-label">Rarement</span></label>
+      <label class="radio-opt"><input type="radio" name="q7" value="Jamais"><div class="radio-indicator"></div><span class="radio-label">Jamais</span></label>
+    </div>
+    <div class="input-error" id="err-q7">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q8 — Rapport qualité/prix -->
+  <div class="question-block">
+    <div class="q-num">08</div>
+    <div class="q-text">Rapport qualité / prix<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q8" value="Excellent" required><div class="radio-indicator"></div><span class="radio-label">Excellent</span></label>
+      <label class="radio-opt"><input type="radio" name="q8" value="Bon"><div class="radio-indicator"></div><span class="radio-label">Bon</span></label>
+      <label class="radio-opt"><input type="radio" name="q8" value="Correct"><div class="radio-indicator"></div><span class="radio-label">Correct</span></label>
+      <label class="radio-opt"><input type="radio" name="q8" value="Mauvais"><div class="radio-indicator"></div><span class="radio-label">Mauvais</span></label>
+      <label class="radio-opt"><input type="radio" name="q8" value="Très mauvais"><div class="radio-indicator"></div><span class="radio-label">Très mauvais</span></label>
+    </div>
+    <div class="input-error" id="err-q8">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q9 — Perception globale -->
+  <div class="question-block">
+    <div class="q-num">09</div>
+    <div class="q-text">Perception globale de notre magasin<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q9" value="Très positive" required><div class="radio-indicator"></div><span class="radio-label">Très positive</span></label>
+      <label class="radio-opt"><input type="radio" name="q9" value="Positive"><div class="radio-indicator"></div><span class="radio-label">Positive</span></label>
+      <label class="radio-opt"><input type="radio" name="q9" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q9" value="Négative"><div class="radio-indicator"></div><span class="radio-label">Négative</span></label>
+      <label class="radio-opt"><input type="radio" name="q9" value="Très négative"><div class="radio-indicator"></div><span class="radio-label">Très négative</span></label>
+    </div>
+    <div class="input-error" id="err-q9">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q10 — Recommandation (NPS proxy) -->
+  <div class="question-block" style="margin-bottom:0">
+    <div class="q-num">10</div>
+    <div class="q-text">Recommanderiez-vous notre magasin ?<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="q10" value="Tout à fait" required><div class="radio-indicator"></div><span class="radio-label">Tout à fait</span></label>
+      <label class="radio-opt"><input type="radio" name="q10" value="Probablement"><div class="radio-indicator"></div><span class="radio-label">Probablement</span></label>
+      <label class="radio-opt"><input type="radio" name="q10" value="Peut-être"><div class="radio-indicator"></div><span class="radio-label">Peut-être</span></label>
+      <label class="radio-opt"><input type="radio" name="q10" value="Probablement pas"><div class="radio-indicator"></div><span class="radio-label">Probablement pas</span></label>
+      <label class="radio-opt"><input type="radio" name="q10" value="Pas du tout"><div class="radio-indicator"></div><span class="radio-label">Pas du tout</span></label>
+    </div>
+    <div class="input-error" id="err-q10">Veuillez sélectionner une réponse.</div>
+  </div>
+</div><!-- /card satisfaction -->
+
+<!-- SECTION 2 : PROFIL DÉMOGRAPHIQUE -->
+<div class="card" style="animation-delay:0.2s">
+  <div class="section-label"><div class="dot"></div><span>Profil démographique</span></div>
+
+  <!-- Q11 — Âge -->
+  <div class="question-block">
+    <div class="q-num">11</div>
+    <div class="q-text">Votre âge<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="age" value="Moins de 18 ans" required><div class="radio-indicator"></div><span class="radio-label">Moins de 18 ans</span></label>
+      <label class="radio-opt"><input type="radio" name="age" value="18 – 24 ans"><div class="radio-indicator"></div><span class="radio-label">18 – 24 ans</span></label>
+      <label class="radio-opt"><input type="radio" name="age" value="25 – 34 ans"><div class="radio-indicator"></div><span class="radio-label">25 – 34 ans</span></label>
+      <label class="radio-opt"><input type="radio" name="age" value="35 – 44 ans"><div class="radio-indicator"></div><span class="radio-label">35 – 44 ans</span></label>
+      <label class="radio-opt"><input type="radio" name="age" value="45 ans et plus"><div class="radio-indicator"></div><span class="radio-label">45 ans et plus</span></label>
+    </div>
+    <div class="input-error" id="err-age">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q12 — Genre -->
+  <div class="question-block">
+    <div class="q-num">12</div>
+    <div class="q-text">Votre genre<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="genre" value="Homme" required><div class="radio-indicator"></div><span class="radio-label">Homme</span></label>
+      <label class="radio-opt"><input type="radio" name="genre" value="Femme"><div class="radio-indicator"></div><span class="radio-label">Femme</span></label>
+      <label class="radio-opt"><input type="radio" name="genre" value="Autre"><div class="radio-indicator"></div><span class="radio-label">Autre</span></label>
+      <label class="radio-opt"><input type="radio" name="genre" value="Préfère ne pas répondre"><div class="radio-indicator"></div><span class="radio-label">Préfère ne pas répondre</span></label>
+    </div>
+    <div class="input-error" id="err-genre">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q13 — Emploi -->
+  <div class="question-block">
+    <div class="q-num">13</div>
+    <div class="q-text">Situation professionnelle<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="emploi" value="Étudiant" required><div class="radio-indicator"></div><span class="radio-label">Étudiant(e)</span></label>
+      <label class="radio-opt"><input type="radio" name="emploi" value="Salarié"><div class="radio-indicator"></div><span class="radio-label">Salarié(e)</span></label>
+      <label class="radio-opt"><input type="radio" name="emploi" value="Indépendant"><div class="radio-indicator"></div><span class="radio-label">Indépendant(e)</span></label>
+      <label class="radio-opt"><input type="radio" name="emploi" value="Sans emploi"><div class="radio-indicator"></div><span class="radio-label">Sans emploi</span></label>
+      <label class="radio-opt"><input type="radio" name="emploi" value="Autre"><div class="radio-indicator"></div><span class="radio-label">Autre</span></label>
+    </div>
+    <div class="input-error" id="err-emploi">Veuillez sélectionner une réponse.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Q14 — Études -->
+  <div class="question-block" style="margin-bottom:0">
+    <div class="q-num">14</div>
+    <div class="q-text">Niveau d'études<span class="req">*</span></div>
+    <div class="radio-group">
+      <label class="radio-opt"><input type="radio" name="etudes" value="Bac" required><div class="radio-indicator"></div><span class="radio-label">Bac</span></label>
+      <label class="radio-opt"><input type="radio" name="etudes" value="Bac +2"><div class="radio-indicator"></div><span class="radio-label">Bac +2</span></label>
+      <label class="radio-opt"><input type="radio" name="etudes" value="Bac +3"><div class="radio-indicator"></div><span class="radio-label">Bac +3</span></label>
+      <label class="radio-opt"><input type="radio" name="etudes" value="Bac +5"><div class="radio-indicator"></div><span class="radio-label">Bac +5</span></label>
+      <label class="radio-opt"><input type="radio" name="etudes" value="Autre"><div class="radio-indicator"></div><span class="radio-label">Autre</span></label>
+    </div>
+    <div class="input-error" id="err-etudes">Veuillez sélectionner une réponse.</div>
+  </div>
+</div><!-- /card demo -->
+
+<!-- SECTION 3 : CONTACT E-MAIL -->
+<div class="card" style="animation-delay:0.3s">
+  <div class="section-label"><div class="dot"></div><span>Contact</span></div>
+  <div class="question-block" style="margin-bottom:0">
+    <div class="q-text">Adresse e-mail<span class="req">*</span></div>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;line-height:1.6">Laissez votre e-mail si vous souhaitez être recontacté(e) ou recevoir nos offres.</p>
+    <div class="input-wrap">
+      <input type="email" id="emailField" name="email" placeholder="votre@email.com" autocomplete="email">
+      <div class="input-error" id="err-email">Veuillez entrer une adresse e-mail valide.</div>
+    </div>
+  </div>
+</div><!-- /card contact -->
+
+<!-- BOUTON D'ENVOI -->
+<button type="submit" class="btn-primary" id="submitBtn">
+  <span class="spinner" id="submitSpinner"></span>
+  Envoyer mes réponses →
+</button>
+
+</form>
+</div><!-- /screen-form -->
+
+<!-- ============================================================
+     ÉCRAN DE REMERCIEMENT
+     ============================================================ -->
+<div class="main" id="screen-thankyou" style="display:none">
+  <div class="card" style="text-align:center;padding:48px 36px">
+    <div class="ty-icon">✓</div>
+    <div class="ty-title">Merci pour votre réponse !</div>
+    <div class="ty-sub">Votre avis a bien été enregistré. Il nous aide à améliorer continuellement nos services et l'expérience en magasin.</div>
+    <div class="ty-id" id="tyId">ID de réponse : <strong>—</strong></div>
+
+    <!-- Statut de synchronisation cloud -->
+    <div id="syncStatus" style="display:none"></div>
+
+    <!-- QR CODE SECTION -->
+    <div class="qr-section">
+      <div class="qr-title">Partagez cette enquête</div>
+      <div class="qr-sub">Scannez ou partagez le QR code pour inviter d'autres clients à répondre.</div>
+
+      <div class="share-url">
+        <span id="shareUrlText">—</span>
+        <button class="copy-btn" onclick="copyUrl()">Copier</button>
+      </div>
+
+      <div class="qr-box">
+        <div id="qrcode"></div>
+      </div>
+
+      <div class="qr-btns">
+        <button class="btn-secondary" onclick="downloadQR()">⬇ Télécharger le QR Code</button>
+        <button class="btn-secondary" onclick="printQR()">🖨 Version imprimable</button>
+      </div>
+    </div>
+  </div><!-- /card remerciement -->
+
+  <!-- BARRE D'EXPORT -->
+  <div class="export-bar">
+    <button class="btn-secondary" onclick="exportJSON()">⬇ Exporter JSON</button>
+    <button class="btn-secondary" onclick="exportCSV()">⬇ Exporter CSV</button>
+    <button class="btn-secondary" onclick="openAdmin()">📊 Tableau de bord</button>
+  </div>
+</div><!-- /screen-thankyou -->
+
+<!-- ============================================================
+     BOUTON FLOTTANT ADMIN
+     ============================================================ -->
+<button class="admin-toggle" onclick="openAdmin()" title="Tableau de bord">📊</button>
+
+<!-- ============================================================
+     PANNEAU ADMIN / DASHBOARD
+     ============================================================ -->
+<div class="admin-panel" id="adminPanel" onclick="if(event.target===this)this.style.display='none'">
+  <div class="admin-inner">
+
+    <!-- En-tête panneau -->
+    <div class="admin-header">
+      <h3>📊 Tableau de bord</h3>
+      <button class="close-btn" onclick="document.getElementById('adminPanel').style.display='none'">✕</button>
+    </div>
+
+    <!-- Onglets : Vue analytique / Réponses brutes -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="tab-analytics" onclick="switchTab('analytics')">📈 Analytique</button>
+      <button class="admin-tab" id="tab-responses" onclick="switchTab('responses')">📋 Réponses</button>
+    </div>
+
+    <!-- Actions export / reset -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn-secondary" onclick="exportJSON()" style="font-size:12px">⬇ JSON</button>
+      <button class="btn-secondary" onclick="exportCSV()" style="font-size:12px">⬇ CSV</button>
+      <button class="btn-secondary" onclick="clearData()" style="font-size:12px;border-color:#fca5a5;color:#ef4444">🗑 Vider</button>
+    </div>
+
+    <!-- ONGLET ANALYTIQUE -->
+    <div id="panel-analytics">
+      <!-- KPI cards -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Graphique satisfaction moyenne par question -->
+      <div class="chart-wrap">
+        <div class="chart-title">Score moyen par dimension</div>
+        <canvas id="chartSatisfaction" height="220"></canvas>
+      </div>
+
+      <!-- Graphique répartition démographique âge -->
+      <div class="chart-wrap">
+        <div class="chart-title">Répartition par tranche d'âge</div>
+        <canvas id="chartAge" height="180"></canvas>
+      </div>
+
+      <!-- Graphique genre -->
+      <div class="chart-wrap">
+        <div class="chart-title">Répartition par genre</div>
+        <canvas id="chartGenre" height="180"></canvas>
+      </div>
+
+      <!-- Graphique recommandation (NPS proxy) -->
+      <div class="chart-wrap">
+        <div class="chart-title">Recommanderiez-vous notre magasin ?</div>
+        <canvas id="chartNPS" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- ONGLET RÉPONSES BRUTES -->
+    <div id="panel-responses" style="display:none">
+      <div id="responsesContainer">
+        <p style="color:var(--gray-400);font-size:13px">Aucune réponse enregistrée.</p>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /adminPanel -->
+
+<!-- ============================================================
+     TOAST NOTIFICATION
+     ============================================================ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ============================================================
+   CONFIGURATION
+   ============================================================
+   Pour activer la synchronisation cloud, renseignez l'une des
+   options ci-dessous :
+
+   Option A — Google Sheets via Google Apps Script :
+     CLOUD_ENDPOINT = "https://script.google.com/macros/s/YOUR_ID/exec"
+   Option B — Supabase REST API :
+     CLOUD_ENDPOINT = "https://xyz.supabase.co/rest/v1/enquete_responses"
+     CLOUD_HEADERS  = { "apikey": "...", "Authorization": "Bearer ..." }
+   Option C — Webhook personnalisé (n8n, Make, Zapier…) :
+     CLOUD_ENDPOINT = "https://hooks.example.com/survey"
+
+   Laissez CLOUD_ENDPOINT vide ("") pour désactiver la synchro.
+   ============================================================ */
+const CLOUD_ENDPOINT = "";   // ← Remplissez ici pour activer
+const CLOUD_HEADERS  = {
+  "Content-Type": "application/json"
+  // Ajoutez vos headers d'authentification ici si besoin
+};
+
+/* ============================================================
+   STRUCTURE DE DONNÉES
+   ============================================================
+   Chaque réponse est stockée avec la structure suivante :
+   {
+     id          : string  — identifiant unique (ex: RES-ABC123-XY78)
+     submittedAt : string  — ISO 8601 timestamp
+     email       : string  — adresse e-mail du répondant
+     q1          : string  — satisfaction globale (valeur numérique 1–5)
+     q2–q10      : string  — réponses aux questions de satisfaction
+     age         : string  — tranche d'âge
+     genre       : string  — genre
+     emploi      : string  — situation professionnelle
+     etudes      : string  — niveau d'études
+   }
+   ============================================================ */
+
+// Clé de stockage localStorage
+const STORAGE_KEY = 'enquete_satisfaction_v2';
+
+// Chargement initial depuis localStorage
+let responses = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+// Liste des champs obligatoires (pour la validation + barre de progression)
+const REQUIRED = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes','email'];
+
+// Référence des instances Chart.js actives (pour destruction/recréation)
+const activeCharts = {};
+
+/* ============================================================
+   BARRE DE PROGRESSION DYNAMIQUE
+   Calcule combien de champs obligatoires sont remplis
+   ============================================================ */
+function updateProgress() {
+  let answered = 0;
+  REQUIRED.forEach(n => {
+    if (n === 'email') {
+      if (document.getElementById('emailField')?.value?.includes('@')) answered++;
+    } else if (document.querySelector(`[name="${n}"]:checked`)) {
+      answered++;
+    }
+  });
+  const pct = Math.round(answered / REQUIRED.length * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Question ${answered} / ${REQUIRED.length}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+/* ============================================================
+   INTERACTIONS RADIO / EMOJI
+   Gestion de la sélection visuelle + effacement des erreurs
+   ============================================================ */
+document.querySelectorAll('.radio-opt, .emoji-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const inp = opt.querySelector('input');
+    if (!inp) return;
+    const name = inp.getAttribute('name');
+    // Désélectionner toutes les options du même groupe
+    document.querySelectorAll(`[name="${name}"]`).forEach(r => {
+      r.closest('.radio-opt, .emoji-opt').classList.remove('selected');
+    });
+    opt.classList.add('selected');
+    // Cacher le message d'erreur associé
+    const err = document.getElementById('err-' + name);
+    if (err) err.classList.remove('show');
+    updateProgress();
+  });
+});
+
+/* ============================================================
+   VALIDATION EMAIL EN TEMPS RÉEL
+   ============================================================ */
+document.getElementById('emailField').addEventListener('input', function() {
+  const err = document.getElementById('err-email');
+  if (this.value.includes('@') && this.value.includes('.')) {
+    err.classList.remove('show');
+  }
+  updateProgress();
+});
+
+/* ============================================================
+   GÉNÉRATION D'IDENTIFIANT UNIQUE
+   Format : RES-[timestamp base36]-[aléatoire]
+   ============================================================ */
+function genId() {
+  return 'RES-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+}
+
+/* ============================================================
+   SAUVEGARDE CLOUD (optionnelle)
+   Envoie les données vers l'endpoint configuré (Sheets, Supabase…)
+   Retourne true si succès, false sinon
+   ============================================================ */
+async function syncToCloud(data) {
+  if (!CLOUD_ENDPOINT) return false; // Pas d'endpoint configuré
+
+  try {
+    const res = await fetch(CLOUD_ENDPOINT, {
+      method: 'POST',
+      headers: CLOUD_HEADERS,
+      body: JSON.stringify(data)
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('Sync cloud échouée :', e);
+    return false;
+  }
+}
+
+/* ============================================================
+   AFFICHAGE DU STATUT DE SYNCHRONISATION
+   ============================================================ */
+function showSyncStatus(success) {
+  const el = document.getElementById('syncStatus');
+  if (!CLOUD_ENDPOINT) return; // Pas de synchro configurée
+  el.style.display = 'flex';
+  if (success) {
+    el.className = 'sync-status';
+    el.innerHTML = '<div class="sync-dot"></div> Réponse synchronisée dans le cloud';
+  } else {
+    el.className = 'sync-status error';
+    el.innerHTML = '<div class="sync-dot"></div> Sauvegardé localement (synchro cloud indisponible)';
+  }
+}
+
+/* ============================================================
+   SOUMISSION DU FORMULAIRE
+   1. Validation de tous les champs obligatoires
+   2. Collecte des données
+   3. Sauvegarde localStorage
+   4. Synchronisation cloud (si configurée)
+   5. Affichage écran remerciement
+   ============================================================ */
+document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  let valid = true;
+
+  // Validation des boutons radio
+  ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes'].forEach(n => {
+    const checked = document.querySelector(`[name="${n}"]:checked`);
+    const err = document.getElementById('err-' + n);
+    if (!checked) { if (err) err.classList.add('show'); valid = false; }
+    else           { if (err) err.classList.remove('show'); }
+  });
+
+  // Validation e-mail
+  const email = document.getElementById('emailField').value.trim();
+  const emailErr = document.getElementById('err-email');
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    emailErr.classList.add('show'); valid = false;
+  } else {
+    emailErr.classList.remove('show');
+  }
+
+  // Si erreurs → scroll vers la première et stopper
+  if (!valid) {
+    document.querySelector('.input-error.show')?.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  // Animation de chargement
+  const btn = document.getElementById('submitBtn');
+  const spinner = document.getElementById('submitSpinner');
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  btn.innerHTML = '<span class="spinner" style="display:inline-block"></span> Envoi en cours...';
+
+  // Délai UX (simule traitement)
+  await new Promise(r => setTimeout(r, 1200));
+
+  // ---- Collecte des données ----
+  const data = {
+    id:          genId(),
+    submittedAt: new Date().toISOString(),
+    email,
+    // Questions satisfaction (q1 = score 1-5, q2-q10 = valeurs textuelles)
+    q1:  document.querySelector('[name="q1"]:checked')?.value,
+    q2:  document.querySelector('[name="q2"]:checked')?.value,
+    q3:  document.querySelector('[name="q3"]:checked')?.value,
+    q4:  document.querySelector('[name="q4"]:checked')?.value,
+    q5:  document.querySelector('[name="q5"]:checked')?.value,
+    q6:  document.querySelector('[name="q6"]:checked')?.value,
+    q7:  document.querySelector('[name="q7"]:checked')?.value,
+    q8:  document.querySelector('[name="q8"]:checked')?.value,
+    q9:  document.querySelector('[name="q9"]:checked')?.value,
+    q10: document.querySelector('[name="q10"]:checked')?.value,
+    // Profil démographique
+    age:    document.querySelector('[name="age"]:checked')?.value,
+    genre:  document.querySelector('[name="genre"]:checked')?.value,
+    emploi: document.querySelector('[name="emploi"]:checked')?.value,
+    etudes: document.querySelector('[name="etudes"]:checked')?.value,
+  };
+
+  // ---- Sauvegarde locale (toujours) ----
+  responses.push(data);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(responses));
+
+  // ---- Synchronisation cloud (optionnelle) ----
+  const cloudOk = await syncToCloud(data);
+  showSyncStatus(cloudOk);
+
+  // ---- Affichage de l'écran de remerciement ----
+  document.getElementById('screen-form').style.display = 'none';
+  const ty = document.getElementById('screen-thankyou');
+  ty.style.display = 'block';
+  document.getElementById('tyId').innerHTML = 'ID de réponse : <strong>' + data.id + '</strong>';
+
+  // Barre de progression à 100%
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressLabel').textContent = 'Complété';
+  document.getElementById('progressPct').textContent = '100%';
+
+  // Initialiser le QR code et rafraîchir le dashboard
+  initQR();
+  renderResponses();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ============================================================
+   GÉNÉRATION DU QR CODE
+   Utilise la bibliothèque qrcodejs
+   Généré une seule fois (flag qrGenerated)
+   ============================================================ */
+let qrGenerated = false;
+function initQR() {
+  if (qrGenerated) return;
+  const url = window.location.href.split('?')[0];
+  document.getElementById('shareUrlText').textContent = url;
+  new QRCode(document.getElementById('qrcode'), {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#0f2b5b',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  qrGenerated = true;
+}
+
+/* ============================================================
+   TÉLÉCHARGEMENT DU QR CODE (PNG)
+   ============================================================ */
+function downloadQR() {
+  setTimeout(() => {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (!canvas) { showToast('QR code non disponible'); return; }
+    const a = document.createElement('a');
+    a.download = 'enquete-qrcode.png';
+    a.href = canvas.toDataURL();
+    a.click();
+    showToast('QR Code téléchargé !');
+  }, 100);
+}
+
+/* ============================================================
+   VERSION IMPRIMABLE DU QR CODE
+   Ouvre une nouvelle fenêtre optimisée impression
+   ============================================================ */
+function printQR() {
+  const canvas = document.querySelector('#qrcode canvas');
+  if (!canvas) { showToast('QR code non disponible'); return; }
+  const url = window.location.href.split('?')[0];
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Code – Enquête de Satisfaction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    @page { margin: 20mm; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Sora', sans-serif;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: #fff; gap: 24px;
+    }
+    .logo-bar {
+      background: linear-gradient(135deg,#0f2b5b,#1a3d7c);
+      color: #fff; padding: 16px 40px;
+      border-radius: 12px; text-align: center;
+    }
+    .logo-bar h1 { font-size: 22px; font-weight: 700; }
+    .logo-bar p  { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+    .qr-frame {
+      border: 3px solid #e2e8f0;
+      border-radius: 20px; padding: 24px;
+      box-shadow: 0 4px 24px rgba(15,43,91,0.12);
+    }
+    img { border-radius: 8px; display: block; }
+    .url-box {
+      background: #f1f5ff; border-radius: 8px;
+      padding: 10px 20px; font-size: 12px;
+      color: #475569; text-align: center;
+      max-width: 320px; word-break: break-all;
+    }
+    .cta { font-size: 15px; color: #0f2b5b; font-weight: 600; text-align: center; }
+    .footer { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 8px; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+  <div class="logo-bar">
+    <h1>Enquête de Satisfaction</h1>
+    <p>Partagez votre avis en 2 minutes</p>
+  </div>
+  <div class="qr-frame">
+    <img src="${canvas.toDataURL()}" width="240" alt="QR Code Enquête">
+  </div>
+  <p class="cta">📱 Scannez ce QR code pour répondre</p>
+  <div class="url-box">${url}</div>
+  <p class="footer">Enquête 2026 — Vos réponses sont anonymisées et sécurisées.</p>
+</body>
+</html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+/* ============================================================
+   COPIER L'URL DANS LE PRESSE-PAPIER
+   ============================================================ */
+function copyUrl() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url)
+    .then(() => showToast('URL copiée !'))
+    .catch(() => {
+      // Fallback pour navigateurs sans API clipboard
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('URL copiée !');
+    });
+}
+
+/* ============================================================
+   EXPORT JSON
+   Télécharge toutes les réponses au format JSON indenté
+   ============================================================ */
+function exportJSON() {
+  const d = localStorage.getItem(STORAGE_KEY) || '[]';
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(JSON.parse(d), null, 2));
+  a.download = 'reponses-enquete.json';
+  a.click();
+  showToast('Export JSON téléchargé');
+}
+
+/* ============================================================
+   EXPORT CSV
+   Génère un fichier CSV avec BOM UTF-8 pour compatibilité Excel
+   ============================================================ */
+function exportCSV() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  if (!data.length) { showToast('Aucune donnée à exporter'); return; }
+
+  // En-têtes lisibles
+  const headers = {
+    id: 'ID', submittedAt: 'Date soumission', email: 'E-mail',
+    q1: 'Q1 – Satisfaction globale', q2: 'Q2 – Produits / attentes',
+    q3: 'Q3 – Qualité produits',     q4: 'Q4 – Facilité accès',
+    q5: 'Q5 – Rapidité service',     q6: 'Q6 – Service client',
+    q7: 'Q7 – Disponibilité produits',q8: 'Q8 – Rapport qualité/prix',
+    q9: 'Q9 – Perception globale',   q10: 'Q10 – Recommandation',
+    age: 'Âge', genre: 'Genre', emploi: 'Emploi', etudes: 'Études'
+  };
+  const keys = Object.keys(headers);
+  const rows = [
+    Object.values(headers).join(','),
+    ...data.map(r => keys.map(k => `"${(r[k] || '').toString().replace(/"/g, '""')}"`).join(','))
+  ];
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(rows.join('\n'));
+  a.download = 'reponses-enquete.csv';
+  a.click();
+  showToast('Export CSV téléchargé');
+}
+
+/* ============================================================
+   SUPPRIMER TOUTES LES DONNÉES
+   ============================================================ */
+function clearData() {
+  if (!confirm('Supprimer définitivement toutes les réponses ?')) return;
+  responses = [];
+  localStorage.removeItem(STORAGE_KEY);
+  renderResponses();
+  renderAnalytics();
+  showToast('Données supprimées');
+}
+
+/* ============================================================
+   CALCUL DU SCORE MOYEN
+   Convertit les réponses textuelles en score 1-5
+   ============================================================ */
+function scoreFromText(value, type) {
+  const scales = {
+    sat5:    { 'Très satisfaisante':5,'Satisfaisante':4,'Neutre':3,'Insatisfaisante':2,'Très insatisfaisante':1,
+               'Très satisfaisant':5,'Satisfaisant':4,'Insatisfaisant':2,'Très insatisfaisant':1 },
+    attente: { 'Tout à fait':5,'Plutôt oui':4,'Neutre':3,'Plutôt non':2,'Pas du tout':1 },
+    facile:  { 'Très facile':5,'Facile':4,'Moyenne':3,'Difficile':2,'Très difficile':1 },
+    dispo:   { 'Toujours':5,'Souvent':4,'Parfois':3,'Rarement':2,'Jamais':1 },
+    qp:      { 'Excellent':5,'Bon':4,'Correct':3,'Mauvais':2,'Très mauvais':1 },
+    percep:  { 'Très positive':5,'Positive':4,'Neutre':3,'Négative':2,'Très négative':1 },
+    reco:    { 'Tout à fait':5,'Probablement':4,'Peut-être':3,'Probablement pas':2,'Pas du tout':1 }
+  };
+  if (type === 'num') return parseFloat(value) || 0;
+  return scales[type]?.[value] || 0;
+}
+
+/* ============================================================
+   RENDU DES GRAPHIQUES ANALYTIQUES (Chart.js)
+   ============================================================ */
+function renderAnalytics() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+  // ---- KPI ----
+  const grid = document.getElementById('statsGrid');
+  if (!data.length) {
+    grid.innerHTML = '<p style="color:var(--gray-400);font-size:13px;grid-column:span 2">Aucune réponse enregistrée.</p>';
+    // Vider les graphiques
+    ['chartSatisfaction','chartAge','chartGenre','chartNPS'].forEach(id => {
+      const ctx = document.getElementById(id);
+      if (ctx) { ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height); }
+      if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+    });
+    return;
+  }
+
+  // Score moyen global (q1 = 1-5)
+  const avgQ1 = (data.reduce((s,r) => s + parseFloat(r.q1||0), 0) / data.length).toFixed(1);
+  // NPS proxy : % "Tout à fait" ou "Probablement" sur q10
+  const promoters = data.filter(r => r.q10 === 'Tout à fait' || r.q10 === 'Probablement').length;
+  const nps = Math.round(promoters / data.length * 100);
+  // Taux réponses dernière semaine
+  const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+  const recent = data.filter(r => new Date(r.submittedAt).getTime() > weekAgo).length;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num">${data.length}</div>
+      <div class="stat-label">Réponses totales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${avgQ1}<span style="font-size:16px;color:var(--gray-400)">/5</span></div>
+      <div class="stat-label">Satisfaction moy.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${nps}%</div>
+      <div class="stat-label">Recommandation</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${recent}</div>
+      <div class="stat-label">Cette semaine</div>
+    </div>`;
+
+  // Couleurs des graphiques
+  const blue = 'rgba(37,99,235,0.75)';
+  const blueArr = ['rgba(37,99,235,0.8)','rgba(30,79,187,0.8)','rgba(59,130,246,0.7)','rgba(96,165,250,0.7)','rgba(147,197,253,0.7)'];
+
+  // ---- GRAPHIQUE : scores moyens par dimension (Q1-Q10) ----
+  const dims = [
+    { label:'Satisfaction\nglobale', key:'q1', type:'num' },
+    { label:'Produits /\nattentes',  key:'q2', type:'attente' },
+    { label:'Qualité\nproduits',     key:'q3', type:'sat5' },
+    { label:'Facilité\naccès',       key:'q4', type:'facile' },
+    { label:'Rapidité\nservice',     key:'q5', type:'sat5' },
+    { label:'Service\nclient',       key:'q6', type:'sat5' },
+    { label:'Disponibilité\nprod.',  key:'q7', type:'dispo' },
+    { label:'Rapport\nQ/P',          key:'q8', type:'qp' },
+    { label:'Perception\nglobale',   key:'q9', type:'percep' },
+    { label:'Reco.',                 key:'q10',type:'reco' },
+  ];
+  const scores = dims.map(d => {
+    const vals = data.map(r => scoreFromText(r[d.key], d.type)).filter(v => v > 0);
+    return vals.length ? +(vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2) : 0;
+  });
+
+  drawChart('chartSatisfaction', 'bar', {
+    labels: dims.map(d => d.label.replace('\n',' ')),
+    datasets: [{ data: scores, backgroundColor: blue, borderRadius: 6, label: 'Score moyen /5' }]
+  }, {
+    scales: { y: { min: 0, max: 5, ticks: { stepSize: 1 } } },
+    plugins: { legend: { display: false } }
+  });
+
+  // ---- GRAPHIQUE : répartition âge ----
+  const ageLabels = ['< 18 ans','18–24 ans','25–34 ans','35–44 ans','45+ ans'];
+  const ageMap = { 'Moins de 18 ans':'< 18 ans','18 – 24 ans':'18–24 ans','25 – 34 ans':'25–34 ans','35 – 44 ans':'35–44 ans','45 ans et plus':'45+ ans' };
+  const ageCount = Object.fromEntries(ageLabels.map(l => [l, 0]));
+  data.forEach(r => { const k = ageMap[r.age]; if (k) ageCount[k]++; });
+
+  drawChart('chartAge', 'bar', {
+    labels: ageLabels,
+    datasets: [{ data: ageLabels.map(l => ageCount[l]), backgroundColor: blueArr, borderRadius: 6, label: 'Répondants' }]
+  }, { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } });
+
+  // ---- GRAPHIQUE : répartition genre ----
+  const genreLabels = ['Homme','Femme','Autre','N/A'];
+  const genreMap = { 'Homme':'Homme','Femme':'Femme','Autre':'Autre','Préfère ne pas répondre':'N/A' };
+  const genreCount = Object.fromEntries(genreLabels.map(l => [l, 0]));
+  data.forEach(r => { const k = genreMap[r.genre]; if (k) genreCount[k]++; });
+
+  drawChart('chartGenre', 'doughnut', {
+    labels: genreLabels,
+    datasets: [{ data: genreLabels.map(l => genreCount[l]),
+      backgroundColor: ['rgba(37,99,235,0.8)','rgba(96,165,250,0.8)','rgba(148,163,184,0.8)','rgba(226,232,240,0.8)'],
+      borderWidth: 2, borderColor: '#fff' }]
+  }, { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } });
+
+  // ---- GRAPHIQUE : recommandation (NPS proxy) ----
+  const npsLabels = ['Tout à fait','Probablement','Peut-être','Probablement pas','Pas du tout'];
+  const npsCount = Object.fromEntries(npsLabels.map(l => [l, 0]));
+  data.forEach(r => { if (npsCount[r.q10] !== undefined) npsCount[r.q10]++; });
+  const npsColors = ['rgba(16,185,129,0.8)','rgba(59,130,246,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.7)','rgba(185,28,28,0.8)'];
+
+  drawChart('chartNPS', 'bar', {
+    labels: npsLabels,
+    datasets: [{ data: npsLabels.map(l => npsCount[l]), backgroundColor: npsColors, borderRadius: 6, label: 'Répondants' }]
+  }, { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } });
+}
+
+/* ============================================================
+   HELPER : créer ou recréer un graphique Chart.js
+   ============================================================ */
+function drawChart(id, type, chartData, options = {}) {
+  // Détruire l'instance précédente pour éviter les conflits
+  if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  activeCharts[id] = new Chart(ctx, {
+    type,
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { tooltip: { callbacks: {} } },
+      ...options
+    }
+  });
+}
+
+/* ============================================================
+   RENDU DES RÉPONSES BRUTES (onglet "Réponses")
+   ============================================================ */
+function renderResponses() {
+  const c = document.getElementById('responsesContainer');
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+  if (!data.length) {
+    c.innerHTML = '<p style="color:var(--gray-400);font-size:13px">Aucune réponse enregistrée.</p>';
+    return;
+  }
+
+  // NPS badge helper
+  const npsBadge = (val) => {
+    if (val === 'Tout à fait' || val === 'Probablement') return '<span class="nps-badge nps-promoter">Promoteur</span>';
+    if (val === 'Peut-être') return '<span class="nps-badge nps-neutral">Neutre</span>';
+    return '<span class="nps-badge nps-detractor">Détracteur</span>';
+  };
+
+  c.innerHTML = data.slice().reverse().map(r => `
+    <div class="response-card">
+      <div class="rc-head">
+        <span class="rc-id">${r.id}</span>
+        <span class="rc-date">${new Date(r.submittedAt).toLocaleString('fr-FR')}</span>
+      </div>
+      <div class="rc-email">📧 ${r.email} &nbsp;${r.q10 ? npsBadge(r.q10) : ''}</div>
+      <div class="sat-bar"><div class="sat-bar-fill" style="width:${(parseFloat(r.q1)||0)/5*100}%;background:${parseFloat(r.q1)>=4?'var(--success)':parseFloat(r.q1)>=3?'var(--warning)':'var(--danger)'}"></div></div>
+      <div style="font-size:10px;color:var(--gray-400);margin:4px 0 8px">Satisfaction globale : ${r.q1}/5</div>
+      <div class="rc-answers">
+        <span class="rc-ans">Q1: ${r.q1}/5</span>      <span class="rc-ans">Q2: ${r.q2||'—'}</span>
+        <span class="rc-ans">Q3: ${r.q3||'—'}</span>   <span class="rc-ans">Q4: ${r.q4||'—'}</span>
+        <span class="rc-ans">Q5: ${r.q5||'—'}</span>   <span class="rc-ans">Q6: ${r.q6||'—'}</span>
+        <span class="rc-ans">Q7: ${r.q7||'—'}</span>   <span class="rc-ans">Q8: ${r.q8||'—'}</span>
+        <span class="rc-ans">Q9: ${r.q9||'—'}</span>   <span class="rc-ans">Q10: ${r.q10||'—'}</span>
+        <span class="rc-ans">Âge: ${r.age||'—'}</span> <span class="rc-ans">Genre: ${r.genre||'—'}</span>
+        <span class="rc-ans">Emploi: ${r.emploi||'—'}</span><span class="rc-ans">Études: ${r.etudes||'—'}</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   GESTION DES ONGLETS DU PANNEAU ADMIN
+   ============================================================ */
+function switchTab(tab) {
+  // Mettre à jour les classes des onglets
+  document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
+  document.getElementById('tab-responses').classList.toggle('active', tab === 'responses');
+  // Afficher/masquer les panneaux
+  document.getElementById('panel-analytics').style.display = tab === 'analytics' ? '' : 'none';
+  document.getElementById('panel-responses').style.display  = tab === 'responses'  ? '' : 'none';
+  // Recalculer les graphiques si on ouvre l'onglet analytics
+  if (tab === 'analytics') renderAnalytics();
+}
+
+/* ============================================================
+   OUVERTURE DU PANNEAU ADMIN
+   ============================================================ */
+function openAdmin() {
+  document.getElementById('adminPanel').style.display = 'flex';
+  renderAnalytics();
+  renderResponses();
+}
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ============================================================
+   INITIALISATION
+   ============================================================ */
+renderResponses();
+updateProgress();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done: $(wc -l < /home/claude/enquete.html) lines"
+Sortie
+
+Done: 1657 lines
