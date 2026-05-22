@@ -1,6 +1,3 @@
-bash
-
-cat > /home/claude/enquete.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -879,7 +876,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 <div class="card" style="animation-delay:0.3s">
   <div class="section-label"><div class="dot"></div><span>Contact</span></div>
   <div class="question-block" style="margin-bottom:0">
-    <div class="q-text">Adresse e-mail<span class="req">*</span></div>
+    <div class="q-text">Adresse e-mail <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(facultatif)</span></div>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;line-height:1.6">Laissez votre e-mail si vous souhaitez être recontacté(e) ou recevoir nos offres.</p>
     <div class="input-wrap">
       <input type="email" id="emailField" name="email" placeholder="votre@email.com" autocomplete="email">
@@ -1064,7 +1061,7 @@ const STORAGE_KEY = 'enquete_satisfaction_v2';
 let responses = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
 // Liste des champs obligatoires (pour la validation + barre de progression)
-const REQUIRED = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes','email'];
+const REQUIRED = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes'];
 
 // Référence des instances Chart.js actives (pour destruction/recréation)
 const activeCharts = {};
@@ -1185,14 +1182,15 @@ document.getElementById('surveyForm').addEventListener('submit', async function(
     else           { if (err) err.classList.remove('show'); }
   });
 
-  // Validation e-mail
-  const email = document.getElementById('emailField').value.trim();
+  // Validation e-mail (facultatif)
+  const emailRaw = document.getElementById('emailField').value.trim();
   const emailErr = document.getElementById('err-email');
-  if (!email || !email.includes('@') || !email.includes('.')) {
+  if (emailRaw && (!emailRaw.includes('@') || !emailRaw.includes('.'))) {
     emailErr.classList.add('show'); valid = false;
   } else {
     emailErr.classList.remove('show');
   }
+  const email = emailRaw || 'Anonyme';
 
   // Si erreurs → scroll vers la première et stopper
   if (!valid) {
@@ -1676,8 +1674,3 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 </script>
 </body>
 </html>
-HTMLEOF
-echo "Done: $(wc -l < /home/claude/enquete.html) lines"
-Sortie
-
-Done: 1657 lines
