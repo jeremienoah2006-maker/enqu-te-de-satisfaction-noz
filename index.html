@@ -1041,7 +1041,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 
    Laissez CLOUD_ENDPOINT vide ("") pour désactiver la synchro.
    ============================================================ */
-const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyQe-6BKfIBFlIK5jH1OMCCFjTOeDu4lE-nKCRIkkYJBrYTQe8vvpZo9-S2kuf5sRaMvw/exec";   // ← Remplissez ici pour activer
+const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbza1Z1bUWu8rZQtT_-ItkfqoqXT0eMAbXlVR8ZQF7CPPMpSbIA6VKiSBwLlviqgzLKJ/exec";   // ← Remplissez ici pour activer
 const CLOUD_HEADERS  = {
   "Content-Type": "application/json"
   // Ajoutez vos headers d'authentification ici si besoin
@@ -1144,11 +1144,13 @@ async function syncToCloud(data) {
   if (!CLOUD_ENDPOINT) return false; // Pas d'endpoint configuré
 
   try {
+    // Google Apps Script requiert FormData (pas JSON) en cross-origin
+    const form = new FormData();
+    form.append('payload', JSON.stringify(data));
     const res = await fetch(CLOUD_ENDPOINT, {
       method: 'POST',
       mode: 'no-cors',
-      headers: CLOUD_HEADERS,
-      body: JSON.stringify(data)
+      body: form
     });
     return true; // no-cors ne permet pas de lire res.ok, on considère envoyé
   } catch (e) {
@@ -1659,12 +1661,35 @@ function switchTab(tab) {
 }
 
 /* ============================================================
+   RÉCUPÉRATION DES RÉPONSES CLOUD (Google Sheets via Apps Script)
+   Fusionne les réponses cloud avec le localStorage (sans doublons)
+   ============================================================ */
+async function fetchFromCloud() {
+  if (!CLOUD_ENDPOINT) return;
+  try {
+    const res  = await fetch(CLOUD_ENDPOINT + '?action=getAll');
+    const json = await res.json();
+    if (!json.data || !Array.isArray(json.data)) return;
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const localIds = new Set(local.map(r => r.id));
+    const merged = [...local];
+    json.data.forEach(r => { if (!localIds.has(r.id)) merged.push(r); });
+    responses = merged;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+  } catch (e) {
+    console.warn('Récupération cloud échouée :', e);
+  }
+}
+
+/* ============================================================
    OUVERTURE DU PANNEAU ADMIN
    ============================================================ */
-function openAdmin() {
+async function openAdmin() {
   const pwd = prompt('Mot de passe administrateur :');
   if (pwd === 'enquete NOZ') {
     document.getElementById('adminPanel').style.display = 'flex';
+    showToast('Chargement des réponses…');
+    await fetchFromCloud();
     renderAnalytics();
     renderResponses();
   } else if (pwd !== null) {
