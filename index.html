@@ -1359,6 +1359,261 @@ function printQR() {
   w.document.close();
   w.print();
 }
+
+/* ============================================================
+   OUVERTURE DU PANNEAU ADMIN
+   ============================================================ */
+function openAdmin() {
+  const pwd = prompt('Mot de passe administrateur :');
+  if (pwd === 'enquete NOZ') {
+    const panel = document.getElementById('adminPanel');
+    panel.style.display = 'flex';
+    renderAnalytics();
+    renderResponses();
+  } else if (pwd !== null) {
+    showToast('Mot de passe incorrect.');
+  }
+}
+
+/* ============================================================
+   GESTION DES ONGLETS DU PANNEAU ADMIN
+   ============================================================ */
+function switchTab(tab) {
+  document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
+  document.getElementById('tab-responses').classList.toggle('active', tab === 'responses');
+  document.getElementById('panel-analytics').style.display = tab === 'analytics' ? '' : 'none';
+  document.getElementById('panel-responses').style.display  = tab === 'responses'  ? '' : 'none';
+  if (tab === 'analytics') renderAnalytics();
+}
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ============================================================
+   EXPORT JSON
+   ============================================================ */
+function exportJSON() {
+  const data = JSON.parse(localStorage.getItem('enquete_satisfaction_v2') || '[]');
+  if (!data.length) { showToast('Aucune donnée à exporter.'); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'enquete-reponses-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  showToast('Export JSON téléchargé !');
+}
+
+/* ============================================================
+   EXPORT CSV
+   ============================================================ */
+function exportCSV() {
+  const data = JSON.parse(localStorage.getItem('enquete_satisfaction_v2') || '[]');
+  if (!data.length) { showToast('Aucune donnée à exporter.'); return; }
+  const keys = ['id','submittedAt','email','q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes'];
+  const header = keys.join(';');
+  const rows = data.map(r => keys.map(k => '"' + (r[k] || '').toString().replace(/"/g, '""') + '"').join(';'));
+  const csv = [header, ...rows].join('
+');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'enquete-reponses-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  showToast('Export CSV téléchargé !');
+}
+
+/* ============================================================
+   VIDER LES DONNÉES
+   ============================================================ */
+function clearData() {
+  if (!confirm('Supprimer toutes les réponses ? Cette action est irréversible.')) return;
+  localStorage.removeItem('enquete_satisfaction_v2');
+  responses = [];
+  renderAnalytics();
+  renderResponses();
+  showToast('Données supprimées.');
+}
+
+/* ============================================================
+   HELPER : score numérique depuis valeur texte
+   ============================================================ */
+function scoreFromText(val, type) {
+  const maps = {
+    num: v => parseFloat(v) || 0,
+    attente: { 'Tout à fait':5,'Plutôt oui':4,'Neutre':3,'Plutôt non':2,'Pas du tout':1 },
+    sat5: { 'Très satisfaisante':5,'Satisfaisante':4,'Neutre':3,'Insatisfaisante':2,'Très insatisfaisante':1,
+            'Très satisfaisant':5,'Satisfaisant':4,'Très satisfaisants':5,'Satisfaisants':4,'Insatisfaisants':2,'Très insatisfaisants':1 },
+    facile: { 'Très facile':5,'Facile':4,'Moyenne':3,'Difficile':2,'Très difficile':1 },
+    dispo: { 'Toujours':5,'Souvent':4,'Parfois':3,'Rarement':2,'Jamais':1 },
+    qp: { 'Excellent':5,'Bon':4,'Correct':3,'Insuffisant':2,'Mauvais':1 },
+    percep: { 'Très positive':5,'Positive':4,'Neutre':3,'Négative':2,'Très négative':1 },
+    reco: { 'Tout à fait':5,'Probablement':4,'Peut-être':3,'Probablement pas':2,'Pas du tout':1 },
+  };
+  if (type === 'num') return parseFloat(val) || 0;
+  const m = maps[type];
+  return (m && m[val]) ? m[val] : 0;
+}
+
+/* ============================================================
+   RENDU ANALYTIQUE (graphiques Chart.js)
+   ============================================================ */
+function renderAnalytics() {
+  const grid = document.getElementById('statsGrid');
+  const data = JSON.parse(localStorage.getItem('enquete_satisfaction_v2') || '[]');
+
+  if (!data.length) {
+    grid.innerHTML = '<p style="color:var(--gray-400);font-size:13px;grid-column:1/-1">Aucune réponse enregistrée.</p>';
+    ['chartSatisfaction','chartAge','chartGenre','chartNPS'].forEach(id => {
+      if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+    });
+    return;
+  }
+
+  const avgQ1 = (data.reduce((s,r) => s + parseFloat(r.q1||0), 0) / data.length).toFixed(1);
+  const promoters = data.filter(r => r.q10 === 'Tout à fait' || r.q10 === 'Probablement').length;
+  const nps = Math.round(promoters / data.length * 100);
+  const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+  const recent = data.filter(r => new Date(r.submittedAt).getTime() > weekAgo).length;
+
+  grid.innerHTML = `
+    <div class="stat-card"><div class="stat-num">${data.length}</div><div class="stat-label">Réponses totales</div></div>
+    <div class="stat-card"><div class="stat-num">${avgQ1}<span style="font-size:16px;color:var(--gray-400)">/5</span></div><div class="stat-label">Satisfaction moy.</div></div>
+    <div class="stat-card"><div class="stat-num">${nps}%</div><div class="stat-label">Recommandation</div></div>
+    <div class="stat-card"><div class="stat-num">${recent}</div><div class="stat-label">Cette semaine</div></div>`;
+
+  const blue = 'rgba(37,99,235,0.75)';
+  const blueArr = ['rgba(37,99,235,0.8)','rgba(30,79,187,0.8)','rgba(59,130,246,0.7)','rgba(96,165,250,0.7)','rgba(147,197,253,0.7)'];
+
+  const dims = [
+    { label:'Satisfaction globale', key:'q1', type:'num' },
+    { label:'Produits / attentes',  key:'q2', type:'attente' },
+    { label:'Qualité produits',     key:'q3', type:'sat5' },
+    { label:'Facilité accès',       key:'q4', type:'facile' },
+    { label:'Rapidité service',     key:'q5', type:'sat5' },
+    { label:'Service client',       key:'q6', type:'sat5' },
+    { label:'Disponibilité prod.',  key:'q7', type:'dispo' },
+    { label:'Rapport Q/P',          key:'q8', type:'qp' },
+    { label:'Perception globale',   key:'q9', type:'percep' },
+    { label:'Reco.',                key:'q10',type:'reco' },
+  ];
+  const scores = dims.map(d => {
+    const vals = data.map(r => scoreFromText(r[d.key], d.type)).filter(v => v > 0);
+    return vals.length ? +(vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2) : 0;
+  });
+
+  drawChart('chartSatisfaction', 'bar', {
+    labels: dims.map(d => d.label),
+    datasets: [{ data: scores, backgroundColor: blue, borderRadius: 6, label: 'Score moyen /5' }]
+  }, { scales: { y: { min:0, max:5, ticks:{ stepSize:1 } } }, plugins: { legend:{ display:false } } });
+
+  const ageLabels = ['< 18 ans','18–24 ans','25–34 ans','35–44 ans','45+ ans'];
+  const ageMap = { 'Moins de 18 ans':'< 18 ans','18 – 24 ans':'18–24 ans','25 – 34 ans':'25–34 ans','35 – 44 ans':'35–44 ans','45 ans et plus':'45+ ans' };
+  const ageCount = Object.fromEntries(ageLabels.map(l => [l, 0]));
+  data.forEach(r => { const k = ageMap[r.age]; if (k) ageCount[k]++; });
+  drawChart('chartAge', 'bar', {
+    labels: ageLabels,
+    datasets: [{ data: ageLabels.map(l => ageCount[l]), backgroundColor: blueArr, borderRadius: 6, label: 'Répondants' }]
+  }, { scales: { y: { beginAtZero:true, ticks:{ stepSize:1 } } }, plugins: { legend:{ display:false } } });
+
+  const genreLabels = ['Homme','Femme','Autre','N/A'];
+  const genreMap = { 'Homme':'Homme','Femme':'Femme','Autre':'Autre','Préfère ne pas répondre':'N/A' };
+  const genreCount = Object.fromEntries(genreLabels.map(l => [l, 0]));
+  data.forEach(r => { const k = genreMap[r.genre]; if (k) genreCount[k]++; });
+  drawChart('chartGenre', 'doughnut', {
+    labels: genreLabels,
+    datasets: [{ data: genreLabels.map(l => genreCount[l]),
+      backgroundColor: ['rgba(37,99,235,0.8)','rgba(96,165,250,0.8)','rgba(148,163,184,0.8)','rgba(226,232,240,0.8)'],
+      borderWidth:2, borderColor:'#fff' }]
+  }, { plugins: { legend:{ position:'bottom', labels:{ font:{ size:11 } } } } });
+
+  const npsLabels = ['Tout à fait','Probablement','Peut-être','Probablement pas','Pas du tout'];
+  const npsCount = Object.fromEntries(npsLabels.map(l => [l, 0]));
+  data.forEach(r => { if (npsCount[r.q10] !== undefined) npsCount[r.q10]++; });
+  const npsColors = ['rgba(16,185,129,0.8)','rgba(59,130,246,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.7)','rgba(185,28,28,0.8)'];
+  drawChart('chartNPS', 'bar', {
+    labels: npsLabels,
+    datasets: [{ data: npsLabels.map(l => npsCount[l]), backgroundColor: npsColors, borderRadius:6, label:'Répondants' }]
+  }, { indexAxis:'y', scales:{ x:{ beginAtZero:true, ticks:{ stepSize:1 } } }, plugins:{ legend:{ display:false } } });
+}
+
+/* ============================================================
+   HELPER : créer ou recréer un graphique Chart.js
+   ============================================================ */
+function drawChart(id, type, chartData, options = {}) {
+  if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  activeCharts[id] = new Chart(ctx, {
+    type,
+    data: chartData,
+    options: { responsive:true, maintainAspectRatio:false, ...options }
+  });
+}
+
+/* ============================================================
+   RENDU DES RÉPONSES BRUTES
+   ============================================================ */
+function renderResponses() {
+  const c = document.getElementById('responsesContainer');
+  const data = JSON.parse(localStorage.getItem('enquete_satisfaction_v2') || '[]');
+
+  if (!data.length) {
+    c.innerHTML = '<p style="color:var(--gray-400);font-size:13px">Aucune réponse enregistrée.</p>';
+    return;
+  }
+
+  const npsBadge = (val) => {
+    if (val === 'Tout à fait' || val === 'Probablement') return '<span class="nps-badge nps-promoter">Promoteur</span>';
+    if (val === 'Peut-être') return '<span class="nps-badge nps-neutral">Neutre</span>';
+    return '<span class="nps-badge nps-detractor">Détracteur</span>';
+  };
+
+  c.innerHTML = data.slice().reverse().map(r => `
+    <div class="response-card">
+      <div class="rc-head">
+        <span class="rc-id">${r.id}</span>
+        <span class="rc-date">${new Date(r.submittedAt).toLocaleString('fr-FR')}</span>
+      </div>
+      <div class="rc-email">📧 ${r.email || '—'} &nbsp;${r.q10 ? npsBadge(r.q10) : ''}</div>
+      <div class="sat-bar"><div class="sat-bar-fill" style="width:${(parseFloat(r.q1)||0)/5*100}%;background:${parseFloat(r.q1)>=4?'var(--success)':parseFloat(r.q1)>=3?'var(--warning)':'var(--danger)'}"></div></div>
+      <div style="font-size:10px;color:var(--gray-400);margin:4px 0 8px">Satisfaction globale : ${r.q1}/5</div>
+      <div class="rc-answers">
+        <span class="rc-ans">Q1: ${r.q1}/5</span>      <span class="rc-ans">Q2: ${r.q2||'—'}</span>
+        <span class="rc-ans">Q3: ${r.q3||'—'}</span>   <span class="rc-ans">Q4: ${r.q4||'—'}</span>
+        <span class="rc-ans">Q5: ${r.q5||'—'}</span>   <span class="rc-ans">Q6: ${r.q6||'—'}</span>
+        <span class="rc-ans">Q7: ${r.q7||'—'}</span>   <span class="rc-ans">Q8: ${r.q8||'—'}</span>
+        <span class="rc-ans">Q9: ${r.q9||'—'}</span>   <span class="rc-ans">Q10: ${r.q10||'—'}</span>
+        <span class="rc-ans">Âge: ${r.age||'—'}</span> <span class="rc-ans">Genre: ${r.genre||'—'}</span>
+        <span class="rc-ans">Emploi: ${r.emploi||'—'}</span><span class="rc-ans">Études: ${r.etudes||'—'}</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   COPIER L'URL DE PARTAGE
+   ============================================================ */
+function copyUrl() {
+  const url = document.getElementById('shareUrlText')?.textContent || window.location.href;
+  navigator.clipboard.writeText(url).then(() => showToast('URL copiée !')).catch(() => showToast('Impossible de copier.'));
+}
+
+/* ============================================================
+   INITIALISATION
+   ============================================================ */
+renderResponses();
+updateProgress();
+
+if (new URLSearchParams(window.location.search).get('qr') === '1') {
+  document.body.classList.add('qr-visitor');
+}
+
 </script>
 </body>
 </html>
