@@ -1018,20 +1018,30 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 /* ============================================================
    CONFIGURATION
    ============================================================
-   Pour activer la synchronisation cloud, renseignez l'une des
-   options ci-dessous :
+   IMPORTANT — VISITEURS QR CODE
+   Les personnes qui scannent le QR code remplissent le formulaire
+   sur LEUR téléphone. Leurs réponses ne peuvent pas être sauvegardées
+   dans le localStorage de votre appareil. Il FAUT configurer un
+   endpoint cloud ci-dessous pour récupérer leurs réponses.
 
-   Option A — Google Sheets via Google Apps Script :
-     CLOUD_ENDPOINT = "https://script.google.com/macros/s/YOUR_ID/exec"
+   Option A — Google Sheets via Google Apps Script (gratuit, recommandé) :
+     1. Allez sur script.google.com → Nouveau projet
+     2. Collez le code du fichier "google-apps-script.gs" fourni
+     3. Déployez → "Déployer en tant qu'application Web"
+        → Accès : "Tout le monde (anonyme)"
+     4. Copiez l'URL de déploiement ci-dessous :
+     CLOUD_ENDPOINT = "https://script.google.com/macros/s/VOTRE_ID/exec"
+
    Option B — Supabase REST API :
      CLOUD_ENDPOINT = "https://xyz.supabase.co/rest/v1/enquete_responses"
      CLOUD_HEADERS  = { "apikey": "...", "Authorization": "Bearer ..." }
-   Option C — Webhook personnalisé (n8n, Make, Zapier…) :
+
+   Option C — Webhook (n8n, Make, Zapier…) :
      CLOUD_ENDPOINT = "https://hooks.example.com/survey"
 
    Laissez CLOUD_ENDPOINT vide ("") pour désactiver la synchro.
    ============================================================ */
-const CLOUD_ENDPOINT = "";   // ← Remplissez ici pour activer
+const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyQe-6BKfIBFlIK5jH1OMCCFjTOeDu4lE-nKCRIkkYJBrYTQe8vvpZo9-S2kuf5sRaMvw/exec";   // ← Remplissez ici pour activer
 const CLOUD_HEADERS  = {
   "Content-Type": "application/json"
   // Ajoutez vos headers d'authentification ici si besoin
@@ -1136,10 +1146,11 @@ async function syncToCloud(data) {
   try {
     const res = await fetch(CLOUD_ENDPOINT, {
       method: 'POST',
+      mode: 'no-cors',
       headers: CLOUD_HEADERS,
       body: JSON.stringify(data)
     });
-    return res.ok;
+    return true; // no-cors ne permet pas de lire res.ok, on considère envoyé
   } catch (e) {
     console.warn('Sync cloud échouée :', e);
     return false;
@@ -1151,14 +1162,24 @@ async function syncToCloud(data) {
    ============================================================ */
 function showSyncStatus(success) {
   const el = document.getElementById('syncStatus');
-  if (!CLOUD_ENDPOINT) return; // Pas de synchro configurée
+  const isQrVisitor = document.body.classList.contains('qr-visitor');
+
+  if (!CLOUD_ENDPOINT) {
+    if (isQrVisitor) {
+      // Visiteur QR sans cloud : ses données sont perdues, on l'avertit
+      el.style.display = 'flex';
+      el.className = 'sync-status error';
+      el.innerHTML = '<div class="sync-dot"></div> ⚠️ Réponse non enregistrée — le système de sauvegarde n\'est pas encore configuré. Merci de contacter l\'organisateur.';
+    }
+    return;
+  }
   el.style.display = 'flex';
   if (success) {
     el.className = 'sync-status';
-    el.innerHTML = '<div class="sync-dot"></div> Réponse synchronisée dans le cloud';
+    el.innerHTML = '<div class="sync-dot"></div> Réponse enregistrée ✓';
   } else {
     el.className = 'sync-status error';
-    el.innerHTML = '<div class="sync-dot"></div> Sauvegardé localement (synchro cloud indisponible)';
+    el.innerHTML = '<div class="sync-dot"></div> Erreur d\'enregistrement — veuillez réessayer.';
   }
 }
 
