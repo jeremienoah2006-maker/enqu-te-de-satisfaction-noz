@@ -1,6 +1,3 @@
-bash
-
-cat > /home/claude/enquete.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -879,7 +876,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 <div class="card" style="animation-delay:0.3s">
   <div class="section-label"><div class="dot"></div><span>Contact</span></div>
   <div class="question-block" style="margin-bottom:0">
-    <div class="q-text">Adresse e-mail<span class="req">*</span></div>
+    <div class="q-text">Adresse e-mail <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(facultatif)</span></div>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;line-height:1.6">Laissez votre e-mail si vous souhaitez être recontacté(e) ou recevoir nos offres.</p>
     <div class="input-wrap">
       <input type="email" id="emailField" name="email" placeholder="votre@email.com" autocomplete="email">
@@ -1064,7 +1061,7 @@ const STORAGE_KEY = 'enquete_satisfaction_v2';
 let responses = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
 // Liste des champs obligatoires (pour la validation + barre de progression)
-const REQUIRED = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes','email'];
+const REQUIRED = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','age','genre','emploi','etudes'];
 
 // Référence des instances Chart.js actives (pour destruction/recréation)
 const activeCharts = {};
@@ -1185,10 +1182,10 @@ document.getElementById('surveyForm').addEventListener('submit', async function(
     else           { if (err) err.classList.remove('show'); }
   });
 
-  // Validation e-mail
+  // Validation e-mail (facultatif — validé seulement si renseigné)
   const email = document.getElementById('emailField').value.trim();
   const emailErr = document.getElementById('err-email');
-  if (!email || !email.includes('@') || !email.includes('.')) {
+  if (email && (!email.includes('@') || !email.includes('.'))) {
     emailErr.classList.add('show'); valid = false;
   } else {
     emailErr.classList.remove('show');
@@ -1234,8 +1231,11 @@ document.getElementById('surveyForm').addEventListener('submit', async function(
   };
 
   // ---- Sauvegarde locale (toujours) ----
-  responses.push(data);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(responses));
+  // Re-lecture depuis localStorage pour éviter toute perte si la page a été rouverte
+  const currentResponses = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  currentResponses.push(data);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(currentResponses));
+  responses = currentResponses;
 
   // ---- Synchronisation cloud (optionnelle) ----
   const cloudOk = await syncToCloud(data);
@@ -1356,328 +1356,3 @@ function printQR() {
   <p class="footer">Enquête 2026 — Vos réponses sont anonymisées et sécurisées.</p>
 </body>
 </html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 500);
-}
-
-/* ============================================================
-   COPIER L'URL DANS LE PRESSE-PAPIER
-   ============================================================ */
-function copyUrl() {
-  const url = window.location.href;
-  navigator.clipboard.writeText(url)
-    .then(() => showToast('URL copiée !'))
-    .catch(() => {
-      // Fallback pour navigateurs sans API clipboard
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('URL copiée !');
-    });
-}
-
-/* ============================================================
-   EXPORT JSON
-   Télécharge toutes les réponses au format JSON indenté
-   ============================================================ */
-function exportJSON() {
-  const d = localStorage.getItem(STORAGE_KEY) || '[]';
-  const a = document.createElement('a');
-  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(JSON.parse(d), null, 2));
-  a.download = 'reponses-enquete.json';
-  a.click();
-  showToast('Export JSON téléchargé');
-}
-
-/* ============================================================
-   EXPORT CSV
-   Génère un fichier CSV avec BOM UTF-8 pour compatibilité Excel
-   ============================================================ */
-function exportCSV() {
-  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  if (!data.length) { showToast('Aucune donnée à exporter'); return; }
-
-  // En-têtes lisibles
-  const headers = {
-    id: 'ID', submittedAt: 'Date soumission', email: 'E-mail',
-    q1: 'Q1 – Satisfaction globale', q2: 'Q2 – Produits / attentes',
-    q3: 'Q3 – Qualité produits',     q4: 'Q4 – Facilité accès',
-    q5: 'Q5 – Rapidité service',     q6: 'Q6 – Service client',
-    q7: 'Q7 – Disponibilité produits',q8: 'Q8 – Rapport qualité/prix',
-    q9: 'Q9 – Perception globale',   q10: 'Q10 – Recommandation',
-    age: 'Âge', genre: 'Genre', emploi: 'Emploi', etudes: 'Études'
-  };
-  const keys = Object.keys(headers);
-  const rows = [
-    Object.values(headers).join(','),
-    ...data.map(r => keys.map(k => `"${(r[k] || '').toString().replace(/"/g, '""')}"`).join(','))
-  ];
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(rows.join('\n'));
-  a.download = 'reponses-enquete.csv';
-  a.click();
-  showToast('Export CSV téléchargé');
-}
-
-/* ============================================================
-   SUPPRIMER TOUTES LES DONNÉES
-   ============================================================ */
-function clearData() {
-  if (!confirm('Supprimer définitivement toutes les réponses ?')) return;
-  responses = [];
-  localStorage.removeItem(STORAGE_KEY);
-  renderResponses();
-  renderAnalytics();
-  showToast('Données supprimées');
-}
-
-/* ============================================================
-   CALCUL DU SCORE MOYEN
-   Convertit les réponses textuelles en score 1-5
-   ============================================================ */
-function scoreFromText(value, type) {
-  const scales = {
-    sat5:    { 'Très satisfaisante':5,'Satisfaisante':4,'Neutre':3,'Insatisfaisante':2,'Très insatisfaisante':1,
-               'Très satisfaisant':5,'Satisfaisant':4,'Insatisfaisant':2,'Très insatisfaisant':1 },
-    attente: { 'Tout à fait':5,'Plutôt oui':4,'Neutre':3,'Plutôt non':2,'Pas du tout':1 },
-    facile:  { 'Très facile':5,'Facile':4,'Moyenne':3,'Difficile':2,'Très difficile':1 },
-    dispo:   { 'Toujours':5,'Souvent':4,'Parfois':3,'Rarement':2,'Jamais':1 },
-    qp:      { 'Excellent':5,'Bon':4,'Correct':3,'Mauvais':2,'Très mauvais':1 },
-    percep:  { 'Très positive':5,'Positive':4,'Neutre':3,'Négative':2,'Très négative':1 },
-    reco:    { 'Tout à fait':5,'Probablement':4,'Peut-être':3,'Probablement pas':2,'Pas du tout':1 }
-  };
-  if (type === 'num') return parseFloat(value) || 0;
-  return scales[type]?.[value] || 0;
-}
-
-/* ============================================================
-   RENDU DES GRAPHIQUES ANALYTIQUES (Chart.js)
-   ============================================================ */
-function renderAnalytics() {
-  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-  // ---- KPI ----
-  const grid = document.getElementById('statsGrid');
-  if (!data.length) {
-    grid.innerHTML = '<p style="color:var(--gray-400);font-size:13px;grid-column:span 2">Aucune réponse enregistrée.</p>';
-    // Vider les graphiques
-    ['chartSatisfaction','chartAge','chartGenre','chartNPS'].forEach(id => {
-      const ctx = document.getElementById(id);
-      if (ctx) { ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height); }
-      if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
-    });
-    return;
-  }
-
-  // Score moyen global (q1 = 1-5)
-  const avgQ1 = (data.reduce((s,r) => s + parseFloat(r.q1||0), 0) / data.length).toFixed(1);
-  // NPS proxy : % "Tout à fait" ou "Probablement" sur q10
-  const promoters = data.filter(r => r.q10 === 'Tout à fait' || r.q10 === 'Probablement').length;
-  const nps = Math.round(promoters / data.length * 100);
-  // Taux réponses dernière semaine
-  const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
-  const recent = data.filter(r => new Date(r.submittedAt).getTime() > weekAgo).length;
-
-  grid.innerHTML = `
-    <div class="stat-card">
-      <div class="stat-num">${data.length}</div>
-      <div class="stat-label">Réponses totales</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${avgQ1}<span style="font-size:16px;color:var(--gray-400)">/5</span></div>
-      <div class="stat-label">Satisfaction moy.</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${nps}%</div>
-      <div class="stat-label">Recommandation</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${recent}</div>
-      <div class="stat-label">Cette semaine</div>
-    </div>`;
-
-  // Couleurs des graphiques
-  const blue = 'rgba(37,99,235,0.75)';
-  const blueArr = ['rgba(37,99,235,0.8)','rgba(30,79,187,0.8)','rgba(59,130,246,0.7)','rgba(96,165,250,0.7)','rgba(147,197,253,0.7)'];
-
-  // ---- GRAPHIQUE : scores moyens par dimension (Q1-Q10) ----
-  const dims = [
-    { label:'Satisfaction\nglobale', key:'q1', type:'num' },
-    { label:'Produits /\nattentes',  key:'q2', type:'attente' },
-    { label:'Qualité\nproduits',     key:'q3', type:'sat5' },
-    { label:'Facilité\naccès',       key:'q4', type:'facile' },
-    { label:'Rapidité\nservice',     key:'q5', type:'sat5' },
-    { label:'Service\nclient',       key:'q6', type:'sat5' },
-    { label:'Disponibilité\nprod.',  key:'q7', type:'dispo' },
-    { label:'Rapport\nQ/P',          key:'q8', type:'qp' },
-    { label:'Perception\nglobale',   key:'q9', type:'percep' },
-    { label:'Reco.',                 key:'q10',type:'reco' },
-  ];
-  const scores = dims.map(d => {
-    const vals = data.map(r => scoreFromText(r[d.key], d.type)).filter(v => v > 0);
-    return vals.length ? +(vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2) : 0;
-  });
-
-  drawChart('chartSatisfaction', 'bar', {
-    labels: dims.map(d => d.label.replace('\n',' ')),
-    datasets: [{ data: scores, backgroundColor: blue, borderRadius: 6, label: 'Score moyen /5' }]
-  }, {
-    scales: { y: { min: 0, max: 5, ticks: { stepSize: 1 } } },
-    plugins: { legend: { display: false } }
-  });
-
-  // ---- GRAPHIQUE : répartition âge ----
-  const ageLabels = ['< 18 ans','18–24 ans','25–34 ans','35–44 ans','45+ ans'];
-  const ageMap = { 'Moins de 18 ans':'< 18 ans','18 – 24 ans':'18–24 ans','25 – 34 ans':'25–34 ans','35 – 44 ans':'35–44 ans','45 ans et plus':'45+ ans' };
-  const ageCount = Object.fromEntries(ageLabels.map(l => [l, 0]));
-  data.forEach(r => { const k = ageMap[r.age]; if (k) ageCount[k]++; });
-
-  drawChart('chartAge', 'bar', {
-    labels: ageLabels,
-    datasets: [{ data: ageLabels.map(l => ageCount[l]), backgroundColor: blueArr, borderRadius: 6, label: 'Répondants' }]
-  }, { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } });
-
-  // ---- GRAPHIQUE : répartition genre ----
-  const genreLabels = ['Homme','Femme','Autre','N/A'];
-  const genreMap = { 'Homme':'Homme','Femme':'Femme','Autre':'Autre','Préfère ne pas répondre':'N/A' };
-  const genreCount = Object.fromEntries(genreLabels.map(l => [l, 0]));
-  data.forEach(r => { const k = genreMap[r.genre]; if (k) genreCount[k]++; });
-
-  drawChart('chartGenre', 'doughnut', {
-    labels: genreLabels,
-    datasets: [{ data: genreLabels.map(l => genreCount[l]),
-      backgroundColor: ['rgba(37,99,235,0.8)','rgba(96,165,250,0.8)','rgba(148,163,184,0.8)','rgba(226,232,240,0.8)'],
-      borderWidth: 2, borderColor: '#fff' }]
-  }, { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } });
-
-  // ---- GRAPHIQUE : recommandation (NPS proxy) ----
-  const npsLabels = ['Tout à fait','Probablement','Peut-être','Probablement pas','Pas du tout'];
-  const npsCount = Object.fromEntries(npsLabels.map(l => [l, 0]));
-  data.forEach(r => { if (npsCount[r.q10] !== undefined) npsCount[r.q10]++; });
-  const npsColors = ['rgba(16,185,129,0.8)','rgba(59,130,246,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.7)','rgba(185,28,28,0.8)'];
-
-  drawChart('chartNPS', 'bar', {
-    labels: npsLabels,
-    datasets: [{ data: npsLabels.map(l => npsCount[l]), backgroundColor: npsColors, borderRadius: 6, label: 'Répondants' }]
-  }, { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } });
-}
-
-/* ============================================================
-   HELPER : créer ou recréer un graphique Chart.js
-   ============================================================ */
-function drawChart(id, type, chartData, options = {}) {
-  // Détruire l'instance précédente pour éviter les conflits
-  if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
-  activeCharts[id] = new Chart(ctx, {
-    type,
-    data: chartData,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { tooltip: { callbacks: {} } },
-      ...options
-    }
-  });
-}
-
-/* ============================================================
-   RENDU DES RÉPONSES BRUTES (onglet "Réponses")
-   ============================================================ */
-function renderResponses() {
-  const c = document.getElementById('responsesContainer');
-  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-  if (!data.length) {
-    c.innerHTML = '<p style="color:var(--gray-400);font-size:13px">Aucune réponse enregistrée.</p>';
-    return;
-  }
-
-  // NPS badge helper
-  const npsBadge = (val) => {
-    if (val === 'Tout à fait' || val === 'Probablement') return '<span class="nps-badge nps-promoter">Promoteur</span>';
-    if (val === 'Peut-être') return '<span class="nps-badge nps-neutral">Neutre</span>';
-    return '<span class="nps-badge nps-detractor">Détracteur</span>';
-  };
-
-  c.innerHTML = data.slice().reverse().map(r => `
-    <div class="response-card">
-      <div class="rc-head">
-        <span class="rc-id">${r.id}</span>
-        <span class="rc-date">${new Date(r.submittedAt).toLocaleString('fr-FR')}</span>
-      </div>
-      <div class="rc-email">📧 ${r.email} &nbsp;${r.q10 ? npsBadge(r.q10) : ''}</div>
-      <div class="sat-bar"><div class="sat-bar-fill" style="width:${(parseFloat(r.q1)||0)/5*100}%;background:${parseFloat(r.q1)>=4?'var(--success)':parseFloat(r.q1)>=3?'var(--warning)':'var(--danger)'}"></div></div>
-      <div style="font-size:10px;color:var(--gray-400);margin:4px 0 8px">Satisfaction globale : ${r.q1}/5</div>
-      <div class="rc-answers">
-        <span class="rc-ans">Q1: ${r.q1}/5</span>      <span class="rc-ans">Q2: ${r.q2||'—'}</span>
-        <span class="rc-ans">Q3: ${r.q3||'—'}</span>   <span class="rc-ans">Q4: ${r.q4||'—'}</span>
-        <span class="rc-ans">Q5: ${r.q5||'—'}</span>   <span class="rc-ans">Q6: ${r.q6||'—'}</span>
-        <span class="rc-ans">Q7: ${r.q7||'—'}</span>   <span class="rc-ans">Q8: ${r.q8||'—'}</span>
-        <span class="rc-ans">Q9: ${r.q9||'—'}</span>   <span class="rc-ans">Q10: ${r.q10||'—'}</span>
-        <span class="rc-ans">Âge: ${r.age||'—'}</span> <span class="rc-ans">Genre: ${r.genre||'—'}</span>
-        <span class="rc-ans">Emploi: ${r.emploi||'—'}</span><span class="rc-ans">Études: ${r.etudes||'—'}</span>
-      </div>
-    </div>`).join('');
-}
-
-/* ============================================================
-   GESTION DES ONGLETS DU PANNEAU ADMIN
-   ============================================================ */
-function switchTab(tab) {
-  // Mettre à jour les classes des onglets
-  document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
-  document.getElementById('tab-responses').classList.toggle('active', tab === 'responses');
-  // Afficher/masquer les panneaux
-  document.getElementById('panel-analytics').style.display = tab === 'analytics' ? '' : 'none';
-  document.getElementById('panel-responses').style.display  = tab === 'responses'  ? '' : 'none';
-  // Recalculer les graphiques si on ouvre l'onglet analytics
-  if (tab === 'analytics') renderAnalytics();
-}
-
-/* ============================================================
-   OUVERTURE DU PANNEAU ADMIN
-   ============================================================ */
-function openAdmin() {
-  const pwd = prompt('Mot de passe administrateur :');
-  if (pwd === 'enquete NOZ') {
-    document.getElementById('adminPanel').style.display = 'flex';
-    renderAnalytics();
-    renderResponses();
-  } else if (pwd !== null) {
-    showToast('Mot de passe incorrect.');
-  }
-}
-
-/* ============================================================
-   TOAST NOTIFICATION
-   ============================================================ */
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-/* ============================================================
-   INITIALISATION
-   ============================================================ */
-renderResponses();
-updateProgress();
-
-/* Masquage admin QR — renforcé via classe CSS */
-if(new URLSearchParams(window.location.search).get('qr')==='1'){
-  document.body.classList.add('qr-visitor');
-}
-</script>
-</body>
-</html>
-HTMLEOF
-echo "Done: $(wc -l < /home/claude/enquete.html) lines"
-Sortie
-
-Done: 1657 lines
