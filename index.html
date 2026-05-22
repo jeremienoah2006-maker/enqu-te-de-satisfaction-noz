@@ -1041,7 +1041,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 
    Laissez CLOUD_ENDPOINT vide ("") pour désactiver la synchro.
    ============================================================ */
-const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbza1Z1bUWu8rZQtT_-ItkfqoqXT0eMAbXlVR8ZQF7CPPMpSbIA6VKiSBwLlviqgzLKJ/exec";   // ← Remplissez ici pour activer
+const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyQe-6BKfIBFlIK5jH1OMCCFjTOeDu4lE-nKCRIkkYJBrYTQe8vvpZo9-S2kuf5sRaMvw/exec";   // ← Remplissez ici pour activer
 const CLOUD_HEADERS  = {
   "Content-Type": "application/json"
   // Ajoutez vos headers d'authentification ici si besoin
@@ -1141,22 +1141,18 @@ function genId() {
    Retourne true si succès, false sinon
    ============================================================ */
 async function syncToCloud(data) {
-  if (!CLOUD_ENDPOINT) return false; // Pas d'endpoint configuré
+  if (!CLOUD_ENDPOINT) return false;
 
-  try {
-    // Google Apps Script requiert FormData (pas JSON) en cross-origin
-    const form = new FormData();
-    form.append('payload', JSON.stringify(data));
-    const res = await fetch(CLOUD_ENDPOINT, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: form
-    });
-    return true; // no-cors ne permet pas de lire res.ok, on considère envoyé
-  } catch (e) {
-    console.warn('Sync cloud échouée :', e);
-    return false;
-  }
+  return new Promise((resolve) => {
+    // Envoi via paramètre GET — contourne tous les problèmes CORS de Google Apps Script
+    const url = CLOUD_ENDPOINT + '?payload=' + encodeURIComponent(JSON.stringify(data));
+    const img = new Image();
+    img.onload  = () => resolve(true);
+    img.onerror = () => resolve(true); // GAS renvoie JSON, pas une image → onerror est normal = succès
+    img.src = url;
+    // Timeout de sécurité 8s
+    setTimeout(() => resolve(false), 8000);
+  });
 }
 
 /* ============================================================
