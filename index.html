@@ -621,7 +621,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
     Enquête 2026
   </div>
   <h1>Enquête de Satisfaction</h1>
-  <p>Votre avis compte. Aidez-nous à améliorer nos services et produits en répondant à ce questionnaire.</p>
+  <p>Bonjour, nous réalisons une enquête de satisfaction pour connaître le ressenti global de nos clients par rapport à nos services et nos produits.</p>
 </div>
 
 <!-- ============================================================
@@ -650,13 +650,13 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q1 — Emoji scale satisfaction globale -->
   <div class="question-block">
     <div class="q-num">01</div>
-    <div class="q-text">Satisfaction globale du magasin<span class="req">*</span></div>
+    <div class="q-text">Comment évaluez-vous votre satisfaction globale du magasin ?<span class="req">*</span></div>
     <div class="emoji-scale" role="group">
-      <label class="emoji-opt"><input type="radio" name="q1" value="5" required><div class="emoji-icon">😄</div><div class="emoji-label">Très satisfait</div></label>
-      <label class="emoji-opt"><input type="radio" name="q1" value="4"><div class="emoji-icon">🙂</div><div class="emoji-label">Satisfait</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="5" required><div class="emoji-icon">😄</div><div class="emoji-label">Très satisfait(e)</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="4"><div class="emoji-icon">🙂</div><div class="emoji-label">Satisfait(e)</div></label>
       <label class="emoji-opt"><input type="radio" name="q1" value="3"><div class="emoji-icon">😐</div><div class="emoji-label">Neutre</div></label>
-      <label class="emoji-opt"><input type="radio" name="q1" value="2"><div class="emoji-icon">😕</div><div class="emoji-label">Insatisfait</div></label>
-      <label class="emoji-opt"><input type="radio" name="q1" value="1"><div class="emoji-icon">😞</div><div class="emoji-label">Très insatisfait</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="2"><div class="emoji-icon">😕</div><div class="emoji-label">Insatisfait(e)</div></label>
+      <label class="emoji-opt"><input type="radio" name="q1" value="1"><div class="emoji-icon">😞</div><div class="emoji-label">Très insatisfait(e)</div></label>
     </div>
     <div class="input-error" id="err-q1">Veuillez sélectionner une réponse.</div>
   </div>
@@ -682,7 +682,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q3 — Qualité produits -->
   <div class="question-block">
     <div class="q-num">03</div>
-    <div class="q-text">Qualité des produits vendus<span class="req">*</span></div>
+    <div class="q-text">Comment jugez-vous la qualité des produits vendus ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q3" value="Très satisfaisante" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisante</span></label>
       <label class="radio-opt"><input type="radio" name="q3" value="Satisfaisante"><div class="radio-indicator"></div><span class="radio-label">Satisfaisante</span></label>
@@ -695,26 +695,26 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 
   <div class="divider"></div>
 
-  <!-- Q4 — Facilité d'accès -->
+  <!-- Q4 — Attitude du personnel -->
   <div class="question-block">
     <div class="q-num">04</div>
-    <div class="q-text">Facilité d'utilisation / d'accès<span class="req">*</span></div>
+    <div class="q-text">Comment évaluez-vous l'attitude du personnel à votre égard ?<span class="req">*</span></div>
     <div class="radio-group">
-      <label class="radio-opt"><input type="radio" name="q4" value="Très facile" required><div class="radio-indicator"></div><span class="radio-label">Très facile</span></label>
-      <label class="radio-opt"><input type="radio" name="q4" value="Facile"><div class="radio-indicator"></div><span class="radio-label">Facile</span></label>
-      <label class="radio-opt"><input type="radio" name="q4" value="Moyenne"><div class="radio-indicator"></div><span class="radio-label">Moyenne</span></label>
-      <label class="radio-opt"><input type="radio" name="q4" value="Difficile"><div class="radio-indicator"></div><span class="radio-label">Difficile</span></label>
-      <label class="radio-opt"><input type="radio" name="q4" value="Très difficile"><div class="radio-indicator"></div><span class="radio-label">Très difficile</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Très facile" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Facile"><div class="radio-indicator"></div><span class="radio-label">Satisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Moyenne"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Difficile"><div class="radio-indicator"></div><span class="radio-label">Insatisfaisante</span></label>
+      <label class="radio-opt"><input type="radio" name="q4" value="Très difficile"><div class="radio-indicator"></div><span class="radio-label">Très insatisfaisante</span></label>
     </div>
     <div class="input-error" id="err-q4">Veuillez sélectionner une réponse.</div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- Q5 — Rapidité service -->
+  <!-- Q5 — Pertinence des renseignements donnés par le personnel -->
   <div class="question-block">
     <div class="q-num">05</div>
-    <div class="q-text">Rapidité et efficacité du service<span class="req">*</span></div>
+    <div class="q-text">Comment jugez-vous la pertinence des renseignements donnés par le personnel ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q5" value="Très satisfaisante" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisante</span></label>
       <label class="radio-opt"><input type="radio" name="q5" value="Satisfaisante"><div class="radio-indicator"></div><span class="radio-label">Satisfaisante</span></label>
@@ -727,16 +727,16 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
 
   <div class="divider"></div>
 
-  <!-- Q6 — Service client -->
+  <!-- Q6 — Ressenti en sortant du magasin -->
   <div class="question-block">
     <div class="q-num">06</div>
-    <div class="q-text">Service client et accompagnement<span class="req">*</span></div>
+    <div class="q-text">Comment vous sentez-vous en ressortant du magasin ?<span class="req">*</span></div>
     <div class="radio-group">
-      <label class="radio-opt"><input type="radio" name="q6" value="Très satisfaisant" required><div class="radio-indicator"></div><span class="radio-label">Très satisfaisant</span></label>
-      <label class="radio-opt"><input type="radio" name="q6" value="Satisfaisant"><div class="radio-indicator"></div><span class="radio-label">Satisfaisant</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Très satisfait" required><div class="radio-indicator"></div><span class="radio-label">Très satisfait</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Satisfait"><div class="radio-indicator"></div><span class="radio-label">Satisfait</span></label>
       <label class="radio-opt"><input type="radio" name="q6" value="Neutre"><div class="radio-indicator"></div><span class="radio-label">Neutre</span></label>
-      <label class="radio-opt"><input type="radio" name="q6" value="Insatisfaisant"><div class="radio-indicator"></div><span class="radio-label">Insatisfaisant</span></label>
-      <label class="radio-opt"><input type="radio" name="q6" value="Très insatisfaisant"><div class="radio-indicator"></div><span class="radio-label">Très insatisfaisant</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Insatisfait"><div class="radio-indicator"></div><span class="radio-label">Insatisfait</span></label>
+      <label class="radio-opt"><input type="radio" name="q6" value="Très insatisfait"><div class="radio-indicator"></div><span class="radio-label">Très insatisfait</span></label>
     </div>
     <div class="input-error" id="err-q6">Veuillez sélectionner une réponse.</div>
   </div>
@@ -746,7 +746,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q7 — Trouver produits en rayon -->
   <div class="question-block">
     <div class="q-num">07</div>
-    <div class="q-text">Trouvez-vous ce que vous recherchez en magasin ?<span class="req">*</span></div>
+    <div class="q-text">Arrivez-vous à trouver ce que vous recherchiez en magasin ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q7" value="Toujours" required><div class="radio-indicator"></div><span class="radio-label">Toujours</span></label>
       <label class="radio-opt"><input type="radio" name="q7" value="Souvent"><div class="radio-indicator"></div><span class="radio-label">Souvent</span></label>
@@ -762,7 +762,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q8 — Rapport qualité/prix -->
   <div class="question-block">
     <div class="q-num">08</div>
-    <div class="q-text">Rapport qualité / prix<span class="req">*</span></div>
+    <div class="q-text">Comment jugez-vous le rapport qualité/prix de nos produits ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q8" value="Excellent" required><div class="radio-indicator"></div><span class="radio-label">Excellent</span></label>
       <label class="radio-opt"><input type="radio" name="q8" value="Bon"><div class="radio-indicator"></div><span class="radio-label">Bon</span></label>
@@ -778,7 +778,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q9 — Perception globale -->
   <div class="question-block">
     <div class="q-num">09</div>
-    <div class="q-text">Perception globale de notre magasin<span class="req">*</span></div>
+    <div class="q-text">Quelle est votre perception de notre magasin ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q9" value="Très positive" required><div class="radio-indicator"></div><span class="radio-label">Très positive</span></label>
       <label class="radio-opt"><input type="radio" name="q9" value="Positive"><div class="radio-indicator"></div><span class="radio-label">Positive</span></label>
@@ -794,7 +794,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q10 — Recommandation (NPS proxy) -->
   <div class="question-block" style="margin-bottom:0">
     <div class="q-num">10</div>
-    <div class="q-text">Recommanderiez-vous notre magasin ?<span class="req">*</span></div>
+    <div class="q-text">Seriez-vous prêt(e) à recommander notre magasin à des amis ou des connaissances ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="q10" value="Tout à fait" required><div class="radio-indicator"></div><span class="radio-label">Tout à fait</span></label>
       <label class="radio-opt"><input type="radio" name="q10" value="Probablement"><div class="radio-indicator"></div><span class="radio-label">Probablement</span></label>
@@ -813,7 +813,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q11 — Âge -->
   <div class="question-block">
     <div class="q-num">11</div>
-    <div class="q-text">Votre âge<span class="req">*</span></div>
+    <div class="q-text">Quel est votre âge ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="age" value="Moins de 18 ans" required><div class="radio-indicator"></div><span class="radio-label">Moins de 18 ans</span></label>
       <label class="radio-opt"><input type="radio" name="age" value="18 – 24 ans"><div class="radio-indicator"></div><span class="radio-label">18 – 24 ans</span></label>
@@ -829,7 +829,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q12 — Genre -->
   <div class="question-block">
     <div class="q-num">12</div>
-    <div class="q-text">Votre genre<span class="req">*</span></div>
+    <div class="q-text">Quel est votre sexe ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="genre" value="Homme" required><div class="radio-indicator"></div><span class="radio-label">Homme</span></label>
       <label class="radio-opt"><input type="radio" name="genre" value="Femme"><div class="radio-indicator"></div><span class="radio-label">Femme</span></label>
@@ -844,7 +844,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q13 — Emploi -->
   <div class="question-block">
     <div class="q-num">13</div>
-    <div class="q-text">Situation professionnelle<span class="req">*</span></div>
+    <div class="q-text">Quelle est votre situation professionnelle ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="emploi" value="Étudiant" required><div class="radio-indicator"></div><span class="radio-label">Étudiant(e)</span></label>
       <label class="radio-opt"><input type="radio" name="emploi" value="Salarié"><div class="radio-indicator"></div><span class="radio-label">Salarié(e)</span></label>
@@ -860,7 +860,7 @@ if(new URLSearchParams(window.location.search).get('qr')==='1'){
   <!-- Q14 — Études -->
   <div class="question-block" style="margin-bottom:0">
     <div class="q-num">14</div>
-    <div class="q-text">Niveau d'études<span class="req">*</span></div>
+    <div class="q-text">Quel est votre niveau d'études ?<span class="req">*</span></div>
     <div class="radio-group">
       <label class="radio-opt"><input type="radio" name="etudes" value="Bac" required><div class="radio-indicator"></div><span class="radio-label">Bac</span></label>
       <label class="radio-opt"><input type="radio" name="etudes" value="Bac +2"><div class="radio-indicator"></div><span class="radio-label">Bac +2</span></label>
@@ -1421,8 +1421,8 @@ function exportCSV() {
   const headers = {
     id: 'ID', submittedAt: 'Date soumission', email: 'E-mail',
     q1: 'Q1 – Satisfaction globale', q2: 'Q2 – Produits / attentes',
-    q3: 'Q3 – Qualité produits',     q4: 'Q4 – Facilité accès',
-    q5: 'Q5 – Rapidité service',     q6: 'Q6 – Service client',
+    q3: 'Q3 – Qualité produits',     q4: 'Q4 – Attitude du personnel',
+    q5: 'Q5 – Renseignements personnel', q6: 'Q6 – Ressenti en sortant',
     q7: 'Q7 – Disponibilité produits',q8: 'Q8 – Rapport qualité/prix',
     q9: 'Q9 – Perception globale',   q10: 'Q10 – Recommandation',
     age: 'Âge', genre: 'Genre', emploi: 'Emploi', etudes: 'Études'
@@ -1458,7 +1458,7 @@ function clearData() {
 function scoreFromText(value, type) {
   const scales = {
     sat5:    { 'Très satisfaisante':5,'Satisfaisante':4,'Neutre':3,'Insatisfaisante':2,'Très insatisfaisante':1,
-               'Très satisfaisant':5,'Satisfaisant':4,'Insatisfaisant':2,'Très insatisfaisant':1 },
+               'Très satisfaisant':5,'Satisfaisant':4,'Insatisfait':2,'Très insatisfait':1,'Satisfait':4 },
     attente: { 'Tout à fait':5,'Plutôt oui':4,'Neutre':3,'Plutôt non':2,'Pas du tout':1 },
     facile:  { 'Très facile':5,'Facile':4,'Moyenne':3,'Difficile':2,'Très difficile':1 },
     dispo:   { 'Toujours':5,'Souvent':4,'Parfois':3,'Rarement':2,'Jamais':1 },
@@ -1525,9 +1525,9 @@ function renderAnalytics() {
     { label:'Satisfaction\nglobale', key:'q1', type:'num' },
     { label:'Produits /\nattentes',  key:'q2', type:'attente' },
     { label:'Qualité\nproduits',     key:'q3', type:'sat5' },
-    { label:'Facilité\naccès',       key:'q4', type:'facile' },
-    { label:'Rapidité\nservice',     key:'q5', type:'sat5' },
-    { label:'Service\nclient',       key:'q6', type:'sat5' },
+    { label:'Attitude\npersonnel',   key:'q4', type:'facile' },
+    { label:'Renseign.\npersonnel',  key:'q5', type:'sat5' },
+    { label:'Ressenti\nen sortant',  key:'q6', type:'sat5' },
     { label:'Disponibilité\nprod.',  key:'q7', type:'dispo' },
     { label:'Rapport\nQ/P',          key:'q8', type:'qp' },
     { label:'Perception\nglobale',   key:'q9', type:'percep' },
